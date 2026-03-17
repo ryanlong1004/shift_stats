@@ -11,19 +11,23 @@ Completed now:
 - shift CRUD routes and pages
 - shift history filters on `/shifts`, `/dashboard`, and `/analytics`
 - shift history sorting controls on `/shifts`
+- query-driven pagination on `/shifts` with preserved list state
+- mobile-friendly shift history row cards (desktop table retained)
+- edit flow returns users to their prior filtered/sorted/paginated list state
+- inline delete confirmation for safer mobile row actions
 - user settings persistence on `/settings`
 - CSV export from shift history with filter-aware export payload
 - chart tooltip currency formatting and responsive container warning fix
 
 In progress now:
 
-- UX refinements for dense history data and smaller screens
+- mobile-first UX refinements and flow hardening
 
 Next up (roadmap priority):
 
-- pagination on `/shifts` (query-driven page + pageSize)
-- mobile table UX polish for history readability
-- inline edit flow improvements from history row actions
+- compact mobile quick filters on `/shifts` with advanced filters still available
+- sticky mobile primary action affordance for add-shift flow
+- regression checks for filter + sort + pagination + return-flow interactions
 
 ## Project Identity
 
@@ -80,7 +84,7 @@ The MVP does not include:
 ## Core Product Rules
 
 - The app must track both `tips only` and `total compensation`.
-- `total compensation` means cash tips + card tips + (base pay * hours worked) + other income.
+- `total compensation` means cash tips + card tips + (base pay \* hours worked) + other income.
 - Every saved shift must have a normalized `hoursWorked` value.
 - A shift can be entered using either total hours or start and end time.
 - If start and end time are used, the app computes `hoursWorked` before saving.
@@ -567,11 +571,11 @@ Possible later environment variables:
 
 ## Immediate Next Build Order (Updated)
 
-1. add query-driven pagination to `/shifts`
-2. preserve filter and sort params across page navigation links
-3. improve mobile rendering of history rows and action controls
-4. add lightweight inline edit affordances from history rows
-5. add regression checks for filter + sort + pagination interactions
+1. add compact mobile quick filters to `/shifts`
+2. keep advanced filter controls available behind a compact mobile section
+3. add sticky mobile add-shift CTA behavior
+4. add regression checks for filter + sort + pagination + return-to-list flows
+5. expand analytics mobile readability pass (labels, spacing, chart summaries)
 
 ## Current Workspace Notes
 

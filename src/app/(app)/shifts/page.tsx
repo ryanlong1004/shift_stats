@@ -146,6 +146,38 @@ export default async function ShiftsPage({
     return `/shifts?${params.toString()}`;
   }
 
+  function buildPresetHref(nextPreset: "all" | "week" | "month") {
+    const params = new URLSearchParams();
+
+    if (nextPreset !== "all") {
+      params.set("preset", nextPreset);
+    }
+
+    if (resolvedSearchParams.location) {
+      params.set("location", resolvedSearchParams.location);
+    }
+    if (resolvedSearchParams.role) {
+      params.set("role", resolvedSearchParams.role);
+    }
+
+    params.set("sortBy", sortBy);
+    params.set("sortOrder", sortOrder);
+    params.set("pageSize", String(pageSize));
+    params.set("page", "1");
+
+    return `/shifts?${params.toString()}`;
+  }
+
+  function buildClearFiltersHref() {
+    const params = new URLSearchParams();
+    params.set("sortBy", sortBy);
+    params.set("sortOrder", sortOrder);
+    params.set("pageSize", String(pageSize));
+    params.set("page", "1");
+
+    return `/shifts?${params.toString()}`;
+  }
+
   const currentListHref = buildShiftsHref(safePage);
 
   return (
@@ -273,6 +305,55 @@ export default async function ShiftsPage({
           </Link>
         </div>
       </form>
+
+      <section className="space-y-3 rounded-[1.25rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Quick filters
+          </p>
+          <Link
+            href={buildClearFiltersHref()}
+            className="text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+          >
+            Reset
+          </Link>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={buildPresetHref("all")}
+            className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              preset === "all"
+                ? "border-slate-900 bg-slate-950 text-white"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            All
+          </Link>
+          <Link
+            href={buildPresetHref("week")}
+            className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              preset === "week"
+                ? "border-slate-900 bg-slate-950 text-white"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            This week
+          </Link>
+          <Link
+            href={buildPresetHref("month")}
+            className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              preset === "month"
+                ? "border-slate-900 bg-slate-950 text-white"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            This month
+          </Link>
+        </div>
+        <p className="text-xs text-slate-500">
+          Use the full filter form above for custom dates, location, and role.
+        </p>
+      </section>
 
       <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
