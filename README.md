@@ -32,6 +32,19 @@ Run release preflight checks:
 npm run check:release
 ```
 
+Run production mode locally (standalone server):
+
+```bash
+npm run build
+npm run start
+```
+
+For local production-mode auth routes, set runtime auth vars in the shell:
+
+```bash
+AUTH_SECRET=replace-with-a-generated-secret AUTH_TRUST_HOST=true npm run start
+```
+
 ## Environment
 
 Create a local environment file from `.env.example` once database details are available.

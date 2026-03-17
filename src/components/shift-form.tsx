@@ -396,7 +396,9 @@ function Field({
   return (
     <label className="block space-y-2">
       <span className="text-sm font-medium text-slate-700">{label}</span>
-      {hint ? <span className="block text-xs text-slate-500">{hint}</span> : null}
+      {hint ? (
+        <span className="block text-xs text-slate-500">{hint}</span>
+      ) : null}
       {children}
       {error ? <span className="text-sm text-rose-600">{error}</span> : null}
     </label>

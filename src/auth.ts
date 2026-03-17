@@ -36,8 +36,20 @@ function getAuthSecret() {
   return undefined;
 }
 
+function getTrustHost() {
+  const configured = process.env.AUTH_TRUST_HOST;
+
+  if (configured !== undefined) {
+    return configured === "true";
+  }
+
+  // Default to trusted host unless explicitly disabled.
+  return true;
+}
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   secret: getAuthSecret(),
+  trustHost: getTrustHost(),
   session: {
     strategy: "jwt",
   },

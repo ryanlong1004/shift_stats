@@ -26,6 +26,7 @@ Completed now:
 - return-to-list sanitize/edit-link helpers with regression checks
 - release preflight command: `npm run check:release`
 - delete refresh behavior regression checks in `check:flows`
+- standalone production-mode dry run validated with required auth env vars
 
 In progress now:
 
@@ -34,7 +35,7 @@ In progress now:
 Next up (roadmap priority):
 
 - analytics mobile readability pass (summary clarity + chart context)
-- deployment dry run to production-like environment
+- deploy to staging/prod-like URL and execute manual smoke checks
 
 ## Project Identity
 
