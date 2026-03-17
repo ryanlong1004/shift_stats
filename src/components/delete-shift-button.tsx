@@ -3,19 +3,32 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-export function DeleteShiftButton({ shiftId }: { shiftId: string }) {
+type DeleteShiftButtonProps = {
+  shiftId: string;
+  shiftDate?: string;
+};
+
+export function DeleteShiftButton({
+  shiftId,
+  shiftDate,
+}: DeleteShiftButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handleDelete() {
-    const confirmed = window.confirm(
-      "Delete this shift? This action cannot be undone.",
-    );
+  function requestDelete() {
+    setIsConfirming(true);
+    setError(null);
+  }
 
-    if (!confirmed) {
-      return;
-    }
+  function cancelDelete() {
+    setIsConfirming(false);
+    setError(null);
+  }
+
+  function confirmDelete() {
+    setIsConfirming(false);
 
     setError(null);
 
@@ -43,14 +56,42 @@ export function DeleteShiftButton({ shiftId }: { shiftId: string }) {
 
   return (
     <div className="space-y-1">
-      <button
-        type="button"
-        onClick={handleDelete}
-        disabled={isPending}
-        className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {isPending ? "Deleting..." : "Delete"}
-      </button>
+      {isConfirming ? (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={confirmDelete}
+            disabled={isPending}
+            className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Confirm delete
+          </button>
+          <button
+            type="button"
+            onClick={cancelDelete}
+            disabled={isPending}
+            className="inline-flex items-center rounded-full border border-slate-300/60 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={requestDelete}
+          disabled={isPending}
+          aria-label={
+            shiftDate ? `Delete shift on ${shiftDate}` : "Delete shift"
+          }
+          className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isPending ? "Deleting..." : "Delete"}
+        </button>
+      )}
+
+      {isConfirming ? (
+        <p className="text-xs text-rose-600">Delete this shift permanently?</p>
+      ) : null}
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
     </div>
   );

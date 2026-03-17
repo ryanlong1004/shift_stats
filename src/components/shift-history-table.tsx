@@ -115,7 +115,7 @@ export function ShiftHistoryTable({
               >
                 Edit
               </Link>
-              <DeleteShiftButton shiftId={row.id} />
+              <DeleteShiftButton shiftId={row.id} shiftDate={row.shiftDate} />
             </div>
           </article>
         ))}
@@ -175,7 +175,10 @@ export function ShiftHistoryTable({
                     >
                       Edit
                     </Link>
-                    <DeleteShiftButton shiftId={row.id} />
+                    <DeleteShiftButton
+                      shiftId={row.id}
+                      shiftDate={row.shiftDate}
+                    />
                   </div>
                 </td>
               </tr>
