@@ -15,6 +15,8 @@ type ShiftsPageSearchParams = {
   role?: string;
   sortBy?: string;
   sortOrder?: string;
+  page?: string;
+  pageSize?: string;
 };
 
 const filterPresets = [
@@ -30,6 +32,8 @@ const sortOptions = [
   { value: "hours", label: "Hours worked" },
   { value: "hourlyRate", label: "Hourly rate" },
 ] as const;
+
+const pageSizeOptions = [10, 25, 50] as const;
 
 export default async function ShiftsPage({
   searchParams,
@@ -66,6 +70,17 @@ export default async function ShiftsPage({
   const sortOrder = (resolvedSearchParams.sortOrder ?? "desc") as
     | "asc"
     | "desc";
+  const rawPage = Number.parseInt(resolvedSearchParams.page ?? "1", 10);
+  const currentPage = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const rawPageSize = Number.parseInt(
+    resolvedSearchParams.pageSize ?? "25",
+    10,
+  );
+  const pageSize = pageSizeOptions.includes(
+    rawPageSize as (typeof pageSizeOptions)[number],
+  )
+    ? rawPageSize
+    : 25;
 
   const sortedRows = [...rows].sort((a, b) => {
     let aVal: number | string = "";
@@ -95,6 +110,41 @@ export default async function ShiftsPage({
     const bNum = Number(bVal);
     return sortOrder === "desc" ? bNum - aNum : aNum - bNum;
   });
+
+  const totalRows = sortedRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const paginatedRows = sortedRows.slice(startIndex, startIndex + pageSize);
+  const rangeStart = totalRows === 0 ? 0 : startIndex + 1;
+  const rangeEnd = Math.min(startIndex + pageSize, totalRows);
+
+  function buildShiftsHref(nextPage: number) {
+    const params = new URLSearchParams();
+
+    if (resolvedSearchParams.preset) {
+      params.set("preset", resolvedSearchParams.preset);
+    }
+    if (resolvedSearchParams.startDate) {
+      params.set("startDate", resolvedSearchParams.startDate);
+    }
+    if (resolvedSearchParams.endDate) {
+      params.set("endDate", resolvedSearchParams.endDate);
+    }
+    if (resolvedSearchParams.location) {
+      params.set("location", resolvedSearchParams.location);
+    }
+    if (resolvedSearchParams.role) {
+      params.set("role", resolvedSearchParams.role);
+    }
+
+    params.set("sortBy", sortBy);
+    params.set("sortOrder", sortOrder);
+    params.set("pageSize", String(pageSize));
+    params.set("page", String(nextPage));
+
+    return `/shifts?${params.toString()}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -134,6 +184,11 @@ export default async function ShiftsPage({
         method="GET"
         className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-5"
       >
+        <input type="hidden" name="sortBy" value={sortBy} />
+        <input type="hidden" name="sortOrder" value={sortOrder} />
+        <input type="hidden" name="pageSize" value={String(pageSize)} />
+        <input type="hidden" name="page" value="1" />
+
         <label className="space-y-2 text-sm text-slate-700">
           <span className="font-medium">Preset</span>
           <select
@@ -276,6 +331,9 @@ export default async function ShiftsPage({
             />
           )}
 
+          <input type="hidden" name="pageSize" value={String(pageSize)} />
+          <input type="hidden" name="page" value="1" />
+
           <label className="space-y-2 text-sm text-slate-700">
             <span className="font-medium">Sort by</span>
             <select
@@ -312,7 +370,105 @@ export default async function ShiftsPage({
         </form>
       </div>
 
-      <ShiftHistoryTable rows={sortedRows} />
+      <div className="flex flex-col gap-3 rounded-[1.25rem] border border-slate-900/10 bg-white/85 px-4 py-3 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)] sm:flex-row sm:items-center sm:justify-between">
+        <p>
+          Showing {rangeStart}-{rangeEnd} of {totalRows} shifts
+        </p>
+        <form method="GET" className="flex items-center gap-2">
+          {resolvedSearchParams.preset && (
+            <input
+              type="hidden"
+              name="preset"
+              value={resolvedSearchParams.preset}
+            />
+          )}
+          {resolvedSearchParams.startDate && (
+            <input
+              type="hidden"
+              name="startDate"
+              value={resolvedSearchParams.startDate}
+            />
+          )}
+          {resolvedSearchParams.endDate && (
+            <input
+              type="hidden"
+              name="endDate"
+              value={resolvedSearchParams.endDate}
+            />
+          )}
+          {resolvedSearchParams.location && (
+            <input
+              type="hidden"
+              name="location"
+              value={resolvedSearchParams.location}
+            />
+          )}
+          {resolvedSearchParams.role && (
+            <input
+              type="hidden"
+              name="role"
+              value={resolvedSearchParams.role}
+            />
+          )}
+          <input type="hidden" name="sortBy" value={sortBy} />
+          <input type="hidden" name="sortOrder" value={sortOrder} />
+          <input type="hidden" name="page" value="1" />
+
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <span>Rows per page</span>
+            <select
+              name="pageSize"
+              defaultValue={String(pageSize)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 outline-none transition focus:border-slate-900"
+            >
+              {pageSizeOptions.map((option) => (
+                <option key={option} value={String(option)}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="submit"
+            className="inline-flex items-center rounded-full border border-slate-900/10 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Update
+          </button>
+        </form>
+      </div>
+
+      <ShiftHistoryTable rows={paginatedRows} />
+
+      <div className="flex items-center justify-between rounded-[1.25rem] border border-slate-900/10 bg-white/85 px-4 py-3 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <span>
+          Page {safePage} of {totalPages}
+        </span>
+        <div className="flex items-center gap-2">
+          <Link
+            href={buildShiftsHref(Math.max(1, safePage - 1))}
+            aria-disabled={safePage <= 1}
+            className={`inline-flex items-center rounded-full border px-3 py-1.5 font-medium transition ${
+              safePage <= 1
+                ? "pointer-events-none border-slate-200 bg-slate-100 text-slate-400"
+                : "border-slate-900/10 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Previous
+          </Link>
+          <Link
+            href={buildShiftsHref(Math.min(totalPages, safePage + 1))}
+            aria-disabled={safePage >= totalPages}
+            className={`inline-flex items-center rounded-full border px-3 py-1.5 font-medium transition ${
+              safePage >= totalPages
+                ? "pointer-events-none border-slate-200 bg-slate-100 text-slate-400"
+                : "border-slate-900/10 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Next
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
