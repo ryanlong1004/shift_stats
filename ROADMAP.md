@@ -12,9 +12,11 @@ Completed now:
 - shift history filters on `/shifts`, `/dashboard`, and `/analytics`
 - shift history sorting controls on `/shifts`
 - query-driven pagination on `/shifts` with preserved list state
+- compact mobile quick-filter chips on `/shifts` (all/week/month)
 - mobile-friendly shift history row cards (desktop table retained)
 - edit flow returns users to their prior filtered/sorted/paginated list state
 - inline delete confirmation for safer mobile row actions
+- formula correction on read path: `total = (base * hours) + cash + card + otherIncome`
 - user settings persistence on `/settings`
 - CSV export from shift history with filter-aware export payload
 - chart tooltip currency formatting and responsive container warning fix
@@ -25,9 +27,9 @@ In progress now:
 
 Next up (roadmap priority):
 
-- compact mobile quick filters on `/shifts` with advanced filters still available
 - sticky mobile primary action affordance for add-shift flow
 - regression checks for filter + sort + pagination + return-flow interactions
+- mobile-first add/edit form polish (touch targets + field hints)
 
 ## Project Identity
 

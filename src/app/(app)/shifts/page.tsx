@@ -552,6 +552,13 @@ export default async function ShiftsPage({
           </Link>
         </div>
       </div>
+
+      <Link
+        href="/shifts/new"
+        className="fixed bottom-20 right-4 z-20 inline-flex items-center rounded-full bg-slate-950 px-4 py-3 text-sm font-medium text-white shadow-[0_14px_34px_rgba(15,23,42,0.35)] transition hover:bg-slate-800 md:hidden"
+      >
+        + Add shift
+      </Link>
     </div>
   );
 }
