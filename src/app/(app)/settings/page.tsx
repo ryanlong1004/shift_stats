@@ -1,4 +1,9 @@
-export default function SettingsPage() {
+import { SettingsForm } from "@/components/settings-form";
+import { getUserSettings } from "@/lib/settings-repository";
+
+export default async function SettingsPage() {
+  const settings = await getUserSettings();
+
   return (
     <div className="space-y-6">
       <section className="rounded-[1.75rem] border border-slate-900/10 bg-white/80 px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
@@ -6,29 +11,15 @@ export default function SettingsPage() {
           Settings
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
-          User settings placeholder
+          User preferences
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-          These are the MVP settings targets from the spec. Persistence and
-          user-scoped state will land after auth and database routes are wired.
+          Update your currency preference, timezone, and shift tracking options.
+          Settings are saved to your account and used across all views.
         </p>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SettingCard label="Currency" value="USD" />
-        <SettingCard label="Timezone" value="America/Chicago" />
-        <SettingCard label="Track base pay" value="Enabled" />
-        <SettingCard label="Split cash and card" value="Enabled" />
-      </section>
-    </div>
-  );
-}
-
-function SettingCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/80 px-5 py-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
-      <p className="text-sm text-slate-600">{label}</p>
-      <p className="mt-3 text-xl font-semibold text-slate-950">{value}</p>
+      <SettingsForm initialSettings={settings} />
     </div>
   );
 }
