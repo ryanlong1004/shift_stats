@@ -10,12 +10,43 @@ import {
   YAxis,
   Bar,
 } from "recharts";
+import { formatCurrency } from "@/lib/formatters";
 
 type EarningsPoint = {
   label: string;
   earned: number;
   hourlyRate: number;
 };
+
+interface EarningsTooltipEntry {
+  value: number;
+  dataKey: string;
+}
+
+interface CustomEarningsTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; dataKey: string; payload: EarningsPoint }>;
+}
+
+function CustomEarningsTooltip({
+  active,
+  payload,
+}: CustomEarningsTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded bg-slate-950 px-3 py-2 text-sm text-white shadow-lg">
+        <p className="font-medium">{payload[0].payload.label}</p>
+        {payload.map((entry: EarningsTooltipEntry, index: number) => (
+          <p key={index} className="text-slate-300">
+            {entry.dataKey === "earned" ? "Earnings" : "Hourly Rate"}:{" "}
+            {formatCurrency(entry.value)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
 
 export function EarningsTrendChart({ data }: { data: EarningsPoint[] }) {
   return (
@@ -34,7 +65,7 @@ export function EarningsTrendChart({ data }: { data: EarningsPoint[] }) {
             <XAxis dataKey="label" stroke="#475569" />
             <YAxis yAxisId="left" stroke="#475569" />
             <YAxis yAxisId="right" orientation="right" stroke="#475569" />
-            <Tooltip />
+            <Tooltip content={<CustomEarningsTooltip />} />
             <Bar
               yAxisId="left"
               dataKey="earned"

@@ -4,6 +4,7 @@ import {
   listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
+import { formatCurrency, formatDecimal } from "@/lib/formatters";
 
 function escapeCSVValue(
   value: string | number | boolean | null | undefined,
@@ -74,13 +75,13 @@ export async function POST(request: Request) {
     const dataRows = rows.map((row) => {
       const values = [
         row.shiftDate,
-        row.hoursWorked,
-        row.totalEarned,
-        row.hourlyRate,
-        row.cashTips,
-        row.cardTips,
-        row.basePay,
-        row.otherIncome,
+        formatDecimal(row.hoursWorked),
+        formatCurrency(row.totalEarned),
+        formatCurrency(row.hourlyRate),
+        formatCurrency(row.cashTips),
+        formatCurrency(row.cardTips),
+        formatCurrency(row.basePay),
+        formatCurrency(row.otherIncome),
         row.location ?? "",
         row.role ?? "",
       ];

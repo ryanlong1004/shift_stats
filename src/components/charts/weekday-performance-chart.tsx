@@ -9,11 +9,31 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { formatCurrency } from "@/lib/formatters";
 
 type WeekdayPoint = {
   label: string;
   hourlyRate: number;
 };
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; payload: WeekdayPoint }>;
+}
+
+function CustomWeekdayTooltip({ active, payload }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded bg-slate-950 px-3 py-2 text-sm text-white shadow-lg">
+        <p className="font-medium">{payload[0].payload.label}</p>
+        <p className="text-slate-300">
+          Hourly Rate: {formatCurrency(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
 
 export function WeekdayPerformanceChart({ data }: { data: WeekdayPoint[] }) {
   return (
@@ -29,7 +49,7 @@ export function WeekdayPerformanceChart({ data }: { data: WeekdayPoint[] }) {
             />
             <XAxis dataKey="label" stroke="#475569" />
             <YAxis stroke="#475569" />
-            <Tooltip />
+            <Tooltip content={<CustomWeekdayTooltip />} />
             <Bar dataKey="hourlyRate" fill="#2563eb" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
