@@ -3,21 +3,17 @@ import Link from "next/link";
 import { ExportShiftsButton } from "@/components/export-shifts-button";
 import { ShiftHistoryTable } from "@/components/shift-history-table";
 import {
+  buildClearFiltersHref,
+  buildPresetHref,
+  buildShiftsHref,
+  pageSizeOptions,
+  parseShiftsQueryState,
+  type ShiftsPageSearchParams,
+} from "@/lib/shifts-query-state";
+import {
   listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
-
-type ShiftsPageSearchParams = {
-  preset?: string;
-  startDate?: string;
-  endDate?: string;
-  location?: string;
-  role?: string;
-  sortBy?: string;
-  sortOrder?: string;
-  page?: string;
-  pageSize?: string;
-};
 
 const filterPresets = [
   { value: "all", label: "All" },
@@ -33,20 +29,14 @@ const sortOptions = [
   { value: "hourlyRate", label: "Hourly rate" },
 ] as const;
 
-const pageSizeOptions = [10, 25, 50] as const;
-
 export default async function ShiftsPage({
   searchParams,
 }: {
   searchParams: Promise<ShiftsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const preset: ShiftListFilters["preset"] =
-    resolvedSearchParams.preset === "week" ||
-    resolvedSearchParams.preset === "month" ||
-    resolvedSearchParams.preset === "custom"
-      ? resolvedSearchParams.preset
-      : "all";
+  const queryState = parseShiftsQueryState(resolvedSearchParams);
+  const preset: ShiftListFilters["preset"] = queryState.preset;
   const filters: ShiftListFilters = {
     preset,
     startDate: resolvedSearchParams.startDate,
@@ -66,21 +56,10 @@ export default async function ShiftsPage({
     new Set(allRows.map((row) => row.role).filter(Boolean)),
   ) as string[];
 
-  const sortBy = resolvedSearchParams.sortBy ?? "date";
-  const sortOrder = (resolvedSearchParams.sortOrder ?? "desc") as
-    | "asc"
-    | "desc";
-  const rawPage = Number.parseInt(resolvedSearchParams.page ?? "1", 10);
-  const currentPage = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
-  const rawPageSize = Number.parseInt(
-    resolvedSearchParams.pageSize ?? "25",
-    10,
-  );
-  const pageSize = pageSizeOptions.includes(
-    rawPageSize as (typeof pageSizeOptions)[number],
-  )
-    ? rawPageSize
-    : 25;
+  const sortBy = queryState.sortBy;
+  const sortOrder = queryState.sortOrder;
+  const currentPage = queryState.page;
+  const pageSize = queryState.pageSize;
 
   const sortedRows = [...rows].sort((a, b) => {
     let aVal: number | string = "";
@@ -119,66 +98,11 @@ export default async function ShiftsPage({
   const rangeStart = totalRows === 0 ? 0 : startIndex + 1;
   const rangeEnd = Math.min(startIndex + pageSize, totalRows);
 
-  function buildShiftsHref(nextPage: number) {
-    const params = new URLSearchParams();
-
-    if (resolvedSearchParams.preset) {
-      params.set("preset", resolvedSearchParams.preset);
-    }
-    if (resolvedSearchParams.startDate) {
-      params.set("startDate", resolvedSearchParams.startDate);
-    }
-    if (resolvedSearchParams.endDate) {
-      params.set("endDate", resolvedSearchParams.endDate);
-    }
-    if (resolvedSearchParams.location) {
-      params.set("location", resolvedSearchParams.location);
-    }
-    if (resolvedSearchParams.role) {
-      params.set("role", resolvedSearchParams.role);
-    }
-
-    params.set("sortBy", sortBy);
-    params.set("sortOrder", sortOrder);
-    params.set("pageSize", String(pageSize));
-    params.set("page", String(nextPage));
-
-    return `/shifts?${params.toString()}`;
-  }
-
-  function buildPresetHref(nextPreset: "all" | "week" | "month") {
-    const params = new URLSearchParams();
-
-    if (nextPreset !== "all") {
-      params.set("preset", nextPreset);
-    }
-
-    if (resolvedSearchParams.location) {
-      params.set("location", resolvedSearchParams.location);
-    }
-    if (resolvedSearchParams.role) {
-      params.set("role", resolvedSearchParams.role);
-    }
-
-    params.set("sortBy", sortBy);
-    params.set("sortOrder", sortOrder);
-    params.set("pageSize", String(pageSize));
-    params.set("page", "1");
-
-    return `/shifts?${params.toString()}`;
-  }
-
-  function buildClearFiltersHref() {
-    const params = new URLSearchParams();
-    params.set("sortBy", sortBy);
-    params.set("sortOrder", sortOrder);
-    params.set("pageSize", String(pageSize));
-    params.set("page", "1");
-
-    return `/shifts?${params.toString()}`;
-  }
-
-  const currentListHref = buildShiftsHref(safePage);
+  const currentListHref = buildShiftsHref(
+    resolvedSearchParams,
+    queryState,
+    safePage,
+  );
 
   return (
     <div className="space-y-6">
@@ -312,7 +236,7 @@ export default async function ShiftsPage({
             Quick filters
           </p>
           <Link
-            href={buildClearFiltersHref()}
+            href={buildClearFiltersHref(queryState)}
             className="text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
           >
             Reset
@@ -320,7 +244,7 @@ export default async function ShiftsPage({
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href={buildPresetHref("all")}
+            href={buildPresetHref(resolvedSearchParams, queryState, "all")}
             className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
               preset === "all"
                 ? "border-slate-900 bg-slate-950 text-white"
@@ -330,7 +254,7 @@ export default async function ShiftsPage({
             All
           </Link>
           <Link
-            href={buildPresetHref("week")}
+            href={buildPresetHref(resolvedSearchParams, queryState, "week")}
             className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
               preset === "week"
                 ? "border-slate-900 bg-slate-950 text-white"
@@ -340,7 +264,7 @@ export default async function ShiftsPage({
             This week
           </Link>
           <Link
-            href={buildPresetHref("month")}
+            href={buildPresetHref(resolvedSearchParams, queryState, "month")}
             className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
               preset === "month"
                 ? "border-slate-900 bg-slate-950 text-white"
@@ -529,7 +453,11 @@ export default async function ShiftsPage({
         </span>
         <div className="flex items-center gap-2">
           <Link
-            href={buildShiftsHref(Math.max(1, safePage - 1))}
+            href={buildShiftsHref(
+              resolvedSearchParams,
+              queryState,
+              Math.max(1, safePage - 1),
+            )}
             aria-disabled={safePage <= 1}
             className={`inline-flex items-center rounded-full border px-3 py-1.5 font-medium transition ${
               safePage <= 1
@@ -540,7 +468,11 @@ export default async function ShiftsPage({
             Previous
           </Link>
           <Link
-            href={buildShiftsHref(Math.min(totalPages, safePage + 1))}
+            href={buildShiftsHref(
+              resolvedSearchParams,
+              queryState,
+              Math.min(totalPages, safePage + 1),
+            )}
             aria-disabled={safePage >= totalPages}
             className={`inline-flex items-center rounded-full border px-3 py-1.5 font-medium transition ${
               safePage >= totalPages

@@ -20,6 +20,7 @@ Completed now:
 - user settings persistence on `/settings`
 - CSV export from shift history with filter-aware export payload
 - chart tooltip currency formatting and responsive container warning fix
+- regression checks added for filter/sort/pagination/quick-filter URL state
 
 In progress now:
 
@@ -28,7 +29,7 @@ In progress now:
 Next up (roadmap priority):
 
 - sticky mobile primary action affordance for add-shift flow
-- regression checks for filter + sort + pagination + return-flow interactions
+- regression checks for return-to-list edit flow and delete refresh behavior
 - mobile-first add/edit form polish (touch targets + field hints)
 
 ## Project Identity
