@@ -55,7 +55,12 @@ export function EarningsTrendChart({ data }: { data: EarningsPoint[] }) {
         Earnings and hourly rate
       </p>
       <div className="mt-4 h-[250px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          minHeight={250}
+        >
           <ComposedChart data={data}>
             <CartesianGrid
               strokeDasharray="3 3"
