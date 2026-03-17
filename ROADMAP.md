@@ -1,411 +1,549 @@
-# Shiftstats Roadmap
+# Shiftstats Implementation Spec
 
 Last updated: 2026-03-16
 
-## Product Summary
+## Project Identity
 
-Shiftstats is a web app for logging individual work shifts and turning them into useful earnings analytics.
+- Product name: Shiftstats
+- Repository: `https://github.com/ryanlong1004/shift_stats`
+- Product type: web app
+- Primary use case: log work shifts quickly and surface useful earnings analytics
 
-Repository target:
+## Goal
 
-- GitHub: `https://github.com/ryanlong1004/shift_stats`
+Build a fast personal analytics app for service-industry shift tracking.
 
-Core user value:
+The first version must do two things well:
 
-- Enter a shift quickly.
-- See true earnings, not just raw tips.
-- Understand performance by day, week, month, role, and location.
-- Spot trends and patterns in under 10 seconds.
+- make shift entry fast on desktop and mobile
+- make earnings trends obvious within one screen load
 
-The product should optimize for speed of data entry, clarity of reporting, and practical usefulness over flashy features.
+## Locked Technical Decisions
 
-## Product Vision
+- Framework: Next.js with App Router
+- Language: TypeScript
+- Styling: Tailwind CSS
+- UI primitives: shadcn/ui
+- Charts: Recharts
+- ORM: Prisma
+- Database: PostgreSQL
+- Hosting target: Vercel
+- Database hosting target: Neon
+- Architecture: Next.js full-stack app, not split frontend and backend
+- Money handling: decimal values only, never floats
 
-Each shift record captures:
+## MVP Boundary
 
-- shift date
-- start and end time, or total hours worked
-- cash tips
-- card tips
-- base pay
-- other income if needed later
-- notes
-- location
-- role or section
+The MVP includes:
 
-From that data, the app should calculate:
+- authentication
+- shift create, read, update, and delete
+- dashboard summary cards
+- shift history table with filters
+- a first chart set
+- basic text insights
 
-- total tips
-- total compensation
-- earnings per hour
-- total earnings by day, week, month
-- total hours worked
-- average per shift
-- best and worst shifts
-- rolling averages
-- trends over time
+The MVP does not include:
 
-## Primary Product Decision
+- CSV import or export
+- tax mode
+- recurring templates
+- calendar view
+- offline support
+- PWA support
+- AI-generated insights
+- goals and targets
 
-Track both of these metrics throughout the app:
+## Core Product Rules
 
-- tips only
-- total compensation
+- The app must track both `tips only` and `total compensation`.
+- `total compensation` means cash tips + card tips + base pay + other income.
+- Every saved shift must have a normalized `hoursWorked` value.
+- A shift can be entered using either total hours or start and end time.
+- If start and end time are used, the app computes `hoursWorked` before saving.
+- If total hours are entered directly, start and end time are optional metadata.
+- Analytics must always be scoped to the signed-in user.
 
-Reason:
+## User Stories
 
-- users care about tip performance
-- users also care about true hourly earnings including wage
+### MVP User Stories
 
-## MVP Scope
+- As a user, I can sign in and see only my own shifts.
+- As a user, I can add a shift in under 30 seconds.
+- As a user, I can edit a bad entry without re-entering everything.
+- As a user, I can delete a shift.
+- As a user, I can see how much I earned this week and this month.
+- As a user, I can see my average hourly earnings.
+- As a user, I can filter my history by date range and location or role.
+- As a user, I can see my best shifts and performance trends.
 
-The MVP should stay narrow and solve the daily logging and review workflow well.
+## Auth Decision
 
-### 1. Shift Entry
+- MVP auth choice: Auth.js
+- User model is required from day one
+- All app routes except sign-in should require authentication
+- Local development can use the simplest provider setup that does not block delivery
 
-Users can create a shift with:
+If Auth.js setup becomes the only blocker to shipping Phase 1 locally, the fallback is:
 
-- date
-- start time and end time, or hours worked
-- cash tips
-- card tips
-- base pay
-- notes
-- location
-- role or section
+- keep the data model user-scoped
+- implement a temporary single-user development path
+- replace it with full Auth.js before deployment
 
-The app calculates:
+## Route Map
 
-- total hours
-- total earnings
-- earnings per hour
+### Public Routes
 
-### 2. Dashboard
+- `/` -> marketing-light landing page or redirect to dashboard if authenticated
+- `/login` -> sign-in page
 
-Initial summary cards:
+### Protected Routes
 
-- total earned this week
-- total earned this month
-- average dollars per hour
-- best shift
-- total hours worked
-- number of shifts
+- `/dashboard` -> default post-login home
+- `/shifts` -> full shift history table
+- `/shifts/new` -> add shift form
+- `/shifts/[id]/edit` -> edit shift form
+- `/analytics` -> deeper charts and insight summaries
+- `/settings` -> user preferences and tracking settings
 
-### 3. Shift History
+## Navigation Model
 
-A table should show:
+Desktop navigation:
 
-- date
-- hours
-- total made
-- dollars per hour
-- location or role
-- notes
+- top bar
+- left sidebar for app sections
 
-Initial filters:
+Mobile navigation:
 
-- week
-- month
-- custom date range
-- location or role
+- top bar
+- bottom nav for primary destinations
 
-### 4. Charts
+Primary nav items:
 
-First chart set:
+- Dashboard
+- Shifts
+- Add Shift
+- Analytics
+- Settings
 
-- line chart of earnings over time
-- bar chart of earnings per shift
-- bar chart of hours worked per week
-- line chart of hourly rate trend
-- pie or bar chart of cash versus card tips
-- weekday heatmap to identify strongest days
-
-### 5. Insight Text
-
-The app should generate short readable summaries such as:
-
-- Your average shift earns $142.36.
-- Fridays are your best day, averaging $29.10 per hour.
-- Your highest-earning shift was March 8: $248 in 6.5 hours.
-- You made 18% more this month than last month.
-
-This layer should make the product feel intelligent without adding AI complexity in the MVP.
-
-## Key Screens
-
-### 1. Login
-
-- simple and clean
-- minimal friction
-
-### 2. Dashboard
-
-- summary cards
-- charts
-- recent shifts
-- quick-add shift button
-
-### 3. Add Shift
-
-- fast input flow
-- optimized for phone and desktop
-
-### 4. Shift History
-
-- filterable table
-- edit and delete support
-
-### 5. Analytics
-
-- daily, weekly, monthly trends
-- month-over-month comparisons
-- best weekday
-- average by location
-- average by role
-
-### 6. Settings
-
-- preferred currency
-- whether to track base wage
-- whether to track cash and card separately
-- timezone
-- export data
-
-## Recommended Stack
-
-### Frontend
-
-- Next.js
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Recharts
-
-Why this stack:
-
-- fast to build
-- strong UI ecosystem
-- good deployment path
-- good type safety for money and analytics logic
-
-### Backend
-
-Recommended MVP architecture:
-
-- Next.js full-stack
-- server actions or route handlers
-- Prisma ORM
-- PostgreSQL
-
-Alternative architecture:
-
-- Next.js frontend
-- FastAPI or Django backend
-- PostgreSQL
-
-Decision:
-
-- use the Next.js full-stack approach unless a separate backend becomes necessary later
-
-### Auth
-
-Preferred options:
-
-- Auth.js
-- Clerk
-- Supabase Auth
-
-Initial recommendation:
-
-- start with the simplest option that does not slow MVP delivery
-
-### Hosting
-
-- Vercel for the app
-- Neon or Supabase for PostgreSQL
-
-## Initial Data Model
+## Data Model
 
 ### users
 
-- id
-- email
-- name
-- created_at
+| Field     | Type     | Required | Notes        |
+| --------- | -------- | -------- | ------------ |
+| id        | string   | yes      | primary key  |
+| email     | string   | yes      | unique       |
+| name      | string   | no       | display name |
+| createdAt | datetime | yes      | default now  |
+| updatedAt | datetime | yes      | auto update  |
 
 ### shifts
 
-- id
-- user_id
-- shift_date
-- start_time nullable
-- end_time nullable
-- hours_worked decimal
-- cash_tips decimal
-- card_tips decimal
-- base_pay decimal
-- other_income decimal
-- total_earned decimal
-- location nullable
-- role nullable
-- notes nullable
-- created_at
-- updated_at
+| Field       | Type          | Required | Notes                        |
+| ----------- | ------------- | -------- | ---------------------------- |
+| id          | string        | yes      | primary key                  |
+| userId      | string        | yes      | foreign key to users         |
+| shiftDate   | date          | yes      | local working date           |
+| inputMode   | enum          | yes      | `hours` or `timeRange`       |
+| startTime   | string        | no       | `HH:mm`, local time          |
+| endTime     | string        | no       | `HH:mm`, local time          |
+| hoursWorked | decimal(5,2)  | yes      | normalized and stored        |
+| cashTips    | decimal(10,2) | yes      | default `0.00`               |
+| cardTips    | decimal(10,2) | yes      | default `0.00`               |
+| basePay     | decimal(10,2) | yes      | default `0.00`               |
+| otherIncome | decimal(10,2) | yes      | default `0.00`               |
+| totalEarned | decimal(10,2) | yes      | denormalized for query speed |
+| location    | string        | no       | short text                   |
+| role        | string        | no       | short text                   |
+| notes       | string        | no       | free text                    |
+| createdAt   | datetime      | yes      | default now                  |
+| updatedAt   | datetime      | yes      | auto update                  |
 
-### Derived Calculations
+### userSettings
 
-These do not need to be stored at first:
+| Field           | Type     | Required | Notes                     |
+| --------------- | -------- | -------- | ------------------------- |
+| id              | string   | yes      | primary key               |
+| userId          | string   | yes      | unique foreign key        |
+| currencyCode    | string   | yes      | default `USD`             |
+| timezone        | string   | yes      | default user locale guess |
+| trackBasePay    | boolean  | yes      | default `true`            |
+| splitTipsByType | boolean  | yes      | default `true`            |
+| createdAt       | datetime | yes      | default now               |
+| updatedAt       | datetime | yes      | auto update               |
 
-- tips_only = cash_tips + card_tips
-- total_compensation = cash_tips + card_tips + base_pay + other_income
-- hourly_rate = total_compensation / hours_worked
+## Initial Sample Data
 
-Rule:
+Use the attached screenshot as the first seed dataset for development, mockups, and acceptance checks.
 
-- use decimals, not floats, for money values
+### Source Rows
 
-## Metrics Worth Shipping
+| Date       |  Total | Hours | Hourly | Day      |
+| ---------- | -----: | ----: | -----: | -------- |
+| 2026-03-14 | 363.00 |  8.45 |  42.96 | Saturday |
+| 2026-03-15 | 255.00 |  6.38 |  39.97 | Sunday   |
+| 2026-03-12 | 222.00 |  5.82 |  38.14 | Thursday |
+| 2026-03-10 |  91.00 |  5.12 |  17.77 | Tuesday  |
 
-Priority metrics:
+### Mapping Rules
 
-- average earnings per hour
-- average tips per shift
-- total tips by week and month
-- total hours by week and month
-- best weekday
-- best month
-- longest shift
-- most profitable short shift
+The screenshot data is a simplified historical format. It does not include cash tips, card tips, or base pay breakdowns.
+
+For the first development seed:
+
+- `shiftDate` comes directly from the sample row date
+- `inputMode` should be `hours`
+- `hoursWorked` comes directly from the sample row hours value
+- `totalEarned` comes directly from the sample row total value
+- `cashTips` should default to `0.00`
+- `cardTips` should default to `0.00`
+- `basePay` should default to `0.00`
+- `otherIncome` should temporarily equal `totalEarned`
+- `location`, `role`, and `notes` should be blank unless manually enriched later
+
+This preserves the screenshot totals without inventing a tips-versus-wage split.
+
+### Expected Aggregate Values From Sample Data
+
+Use these values to validate the first dashboard implementation:
+
+- total shifts: `4`
+- total earned: `931.00`
+- total hours worked: `25.77`
+- average shift earnings: `232.75`
+- weighted average hourly rate: `36.13`
+- best shift total: `363.00` on `2026-03-14`
+- best weekday by hourly rate: `Saturday`
+
+### Seed Data File
+
+The repo should treat `sample-data/initial-shifts.csv` as the canonical starter dataset for local development until real user-entered data exists.
+
+## Validation Rules
+
+- `shiftDate` is required
+- one input mode must be selected: `hours` or `timeRange`
+- if input mode is `hours`, `hoursWorked` is required and must be greater than `0`
+- if input mode is `timeRange`, `startTime` and `endTime` are required
+- all money fields default to `0.00` and cannot be negative in MVP
+- `hoursWorked` cannot exceed `24.00`
+- `location` max length: `100`
+- `role` max length: `100`
+- `notes` max length: `1000`
+
+## Calculation Rules
+
+### Normalization
+
+- `totalTips = cashTips + cardTips`
+- `totalCompensation = cashTips + cardTips + basePay + otherIncome`
+- `totalEarned` should store `totalCompensation`
+- `hourlyRate = totalEarned / hoursWorked`
+
+### Time Handling
+
+- `hoursWorked` is the canonical duration field used for analytics
+- if the user provides a time range, compute decimal hours from the difference
+- computed hours should round to two decimal places
+- overnight shifts are not supported in MVP unless explicitly implemented later
+
+### Numeric Handling
+
+- use Prisma decimals in persistence
+- use a decimal-safe utility for calculations in application code
+- format currency only at the presentation layer
+
+## Dashboard Spec
+
+### Summary Cards
+
+The dashboard must show these six cards:
+
+- total earned this week
+- total earned this month
+- average hourly rate
+- best shift value
+- total hours worked in current filter context
+- number of shifts in current filter context
+
+### Recent Activity
+
+- show the 5 most recent shifts
+- include quick actions for edit and add shift
+
+### Dashboard Charts
+
+The dashboard view should include:
+
+- earnings over time line chart
+- earnings per shift bar chart
+- hourly rate trend line chart
+
+The deeper analytics page should include:
+
+- hours worked per week bar chart
+- cash versus card tips chart
+- weekday performance heatmap
+
+### Dashboard Insight Text
+
+The dashboard should generate at least 3 short insights from current data:
+
+- average shift earnings
+- best weekday by hourly rate
+- best single shift in the selected period
+
+## Shift History Spec
+
+### Table Columns
+
+- date
+- hours
+- total earned
+- hourly rate
+- cash tips
+- card tips
+- base pay
+- location
+- role
+- notes
+- actions
+
+### Filters
+
+- current week
+- current month
+- custom date range
+- location
+- role
+
+### Sorting
+
+- default sort: `shiftDate desc`, then `createdAt desc`
+
+## Analytics Spec
+
+The analytics page must include these grouped views:
+
+### Trend Views
+
+- daily earnings trend
+- weekly earnings totals
+- hourly rate trend
 - moving 7-shift average
-- projected weekly earnings based on recent average
+
+### Breakdown Views
+
 - earnings by location
 - earnings by role
 - cash versus card ratio
+- best weekday by average hourly rate
 
-## UX Direction
+### Comparison Views
 
-### Layout
+- current month versus previous month
+- last 4 weeks versus previous 4 weeks
 
-- top navigation
-- left sidebar on desktop
-- bottom navigation on mobile
-- dashboard as the default landing screen after login
+## Insight Formulas
 
-### Visual Style
+- `averageShiftEarnings = totalEarned sum / shift count`
+- `averageHourlyRate = totalEarned sum / hoursWorked sum`
+- `bestWeekday = weekday with highest average hourlyRate`
+- `bestShift = shift with highest totalEarned`
+- `monthOverMonthChange = (currentMonth - previousMonth) / previousMonth`
+- `consistencyScore = standard deviation of totalEarned` for later phases, not MVP UI
 
-- clean and practical
-- dark and light mode support
-- cards for summaries
-- clear currency formatting
-- restrained use of color
-- charts with strong tooltips and readable axes
+## Form Spec
 
-### UX Priority
+### Add Shift Form Fields
 
-The product should feel:
+- shift date
+- input mode toggle
+- total hours or start time and end time
+- cash tips
+- card tips
+- base pay
+- other income
+- location
+- role
+- notes
 
-- fast to enter data
-- easy to review trends
-- useful in under 10 seconds
+### Form Behavior
 
-## Example User Flow
+- show computed total earned before submit
+- show computed hourly rate before submit
+- preserve user input on validation errors
+- support both desktop and mobile widths without modal-only UX
 
-1. User signs in.
-2. User clicks Add Shift.
-3. User enters date, hours, cash tips, card tips, and base pay.
-4. The app computes total earned and hourly rate.
-5. The dashboard updates charts, summaries, and insights.
+## Component Inventory
+
+### App Shell
+
+- `AppShell`
+- `SidebarNav`
+- `MobileBottomNav`
+- `TopBar`
+
+### Shift Entry
+
+- `ShiftForm`
+- `InputModeToggle`
+- `MoneyInput`
+- `DurationInput`
+- `TimeRangeInput`
+- `ShiftPreviewCard`
+
+### Dashboard
+
+- `SummaryCardGrid`
+- `SummaryCard`
+- `RecentShiftsList`
+- `InsightPanel`
+- `EarningsLineChart`
+- `ShiftBarChart`
+- `HourlyRateLineChart`
+
+### History And Analytics
+
+- `ShiftFilters`
+- `ShiftHistoryTable`
+- `WeekdayHeatmap`
+- `TipsSplitChart`
+- `HoursPerWeekChart`
+- `AnalyticsSection`
+
+## Server Responsibilities
+
+### Server Actions Or Route Handlers
+
+- create shift
+- update shift
+- delete shift
+- list shifts with filters
+- fetch dashboard summary
+- fetch analytics aggregates
+- update user settings
+
+### Data Access Rules
+
+- every query must filter by authenticated `userId`
+- aggregate queries should run in the database where practical
+- expensive derived datasets should be computed server-side, not in the client
+
+## Initial Prisma Shape
+
+The implementation should start with these models:
+
+- `User`
+- `Shift`
+- `UserSettings`
+
+Implementation notes:
+
+- store money as `Decimal` with two decimal places in the database
+- index `Shift.userId`
+- index `Shift.shiftDate`
+- add a composite index on `Shift.userId + Shift.shiftDate`
+- keep `totalEarned` persisted for simple aggregates and ordering
+
+## App State Strategy
+
+- server components should own page-level data fetching by default
+- client components should be used only for interactive form logic, charts, and filters
+- avoid global client state unless there is a clear repeated need
+- query string parameters should drive history and analytics filters where practical
+
+## Formatting Rules
+
+- currency display should use user settings currency code
+- dates should render in the user timezone
+- hours should display to at most two decimals
+- empty money fields should display as `$0.00` in the default locale
+
+## Environment Variables
+
+Expected initial environment variables:
+
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- auth provider variables as required by chosen Auth.js provider setup
+
+Possible later environment variables:
+
+- analytics or telemetry keys
+- email provider credentials
 
 ## Delivery Plan
 
-### Phase 1
+### Phase 1: Foundation
 
-- auth
-- database setup
-- create, read, update, delete shifts
-- dashboard summary cards
+- initialize Next.js app
+- configure Tailwind and shadcn/ui
+- configure Prisma and PostgreSQL
+- add Auth.js
+- create Prisma schema
+- run initial migration
+- build app shell
+- implement add, edit, delete, and list shifts
+- implement dashboard summary cards
 
-### Phase 2
+### Phase 2: Reporting
 
-- charts
-- filters
-- shift history table
+- implement history filters
+- implement history table
+- implement dashboard charts
+- implement analytics page
+- implement first text insights
 
-### Phase 3
+### Phase 3: Refinement
 
-- advanced analytics
-- goal tracking
-- export and import
+- add settings page
+- add month-over-month comparisons
+- add location and role breakdowns
+- improve mobile UX and loading states
 
-### Phase 4
+### Phase 4: Expansion
 
-- mobile polish
-- PWA support
-- AI-generated insights
-
-## Post-MVP Features
-
-These should stay out of the first release unless they become necessary:
-
-- CSV export
-- spreadsheet import
-- recurring shift templates
+- import and export
+- goals
 - calendar view
-- tax estimate mode
-- goal tracking
-- quick mobile entry polish
-- offline support
-- event tags such as holiday, weather, or private party
-- AI-generated insights from shift history
+- PWA
+- AI insight generation
 
-## Product Naming
+## Acceptance Criteria
 
-Current name candidates:
+### Phase 1 Acceptance
 
-- TipTrack
-- ShiftTips
-- TipLedger
-- TipPulse
-- ShiftStats
-- EarnPerHour
+- a signed-in user can create a shift
+- a signed-in user can edit and delete a shift
+- saved shifts persist to PostgreSQL
+- dashboard cards update from real database data
+- all queries are user-scoped
+- local development runs cleanly with documented setup
 
-Strongest options so far:
+### Phase 2 Acceptance
 
-- TipPulse
-- ShiftStats
+- shift history filters update results correctly
+- chart data matches filtered results
+- at least 3 text insights render from actual data
+- analytics views load without client-side full-page recomputation
 
-## Confirmed Workspace Notes
+## Immediate Build Order
 
-- workspace path: `/home/rlong/Sandbox/shiftstats`
-- current workspace contains `.venv/`, `.vscode/settings.json`, and `.gitignore`
-- the local Python environment is project-specific and not shared with `deadpool`
-- `.gitignore` currently ignores `.venv/`
+1. generate the Next.js app scaffold
+2. add Tailwind, shadcn/ui, Prisma, and Auth.js
+3. define the Prisma schema and migration
+4. build the app shell and protected routes
+5. implement the shift form and CRUD flow
+6. implement dashboard summaries
+7. implement tables, filters, and charts
 
-These notes are operational only. The actual app stack is expected to be Next.js-based.
+## Current Workspace Notes
 
-## Immediate Next Planning Tasks
+- local path: `/home/rlong/Sandbox/shiftstats`
+- git remote: `origin -> https://github.com/ryanlong1004/shift_stats.git`
+- local `.venv` is project-specific and separate from `deadpool`
+- `.gitignore` already ignores `.venv/`
 
-Before writing code, lock these down:
-
-1. final shift field list for the database and form
-2. exact dashboard widgets for the MVP
-3. exact chart list for the MVP
-4. auth choice
-5. first-pass page structure
-6. Prisma schema and route or server action plan
-
-## Current Build Recommendation
-
-Build the first version with:
-
-- Next.js
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Recharts
-- Prisma
-- PostgreSQL
-- Vercel
-- Neon
-
-This is the cleanest path to a practical MVP with room to grow.
+These notes are operational only. The application itself should be built with the Next.js stack defined above.

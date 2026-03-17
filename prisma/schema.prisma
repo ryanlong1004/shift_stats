@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ShiftInputMode {
+  hours
+  timeRange
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  shifts       Shift[]
+  userSettings UserSettings?
+}
+
+model Shift {
+  id          String         @id @default(cuid())
+  userId      String
+  shiftDate   DateTime       @db.Date
+  inputMode   ShiftInputMode
+  startTime   String?
+  endTime     String?
+  hoursWorked Decimal        @db.Decimal(5, 2)
+  cashTips    Decimal        @default(0) @db.Decimal(10, 2)
+  cardTips    Decimal        @default(0) @db.Decimal(10, 2)
+  basePay     Decimal        @default(0) @db.Decimal(10, 2)
+  otherIncome Decimal        @default(0) @db.Decimal(10, 2)
+  totalEarned Decimal        @db.Decimal(10, 2)
+  location    String?
+  role        String?
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([shiftDate])
+  @@index([userId, shiftDate])
+}
+
+model UserSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  currencyCode    String   @default("USD")
+  timezone        String   @default("America/Chicago")
+  trackBasePay    Boolean  @default(true)
+  splitTipsByType Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
