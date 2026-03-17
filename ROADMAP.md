@@ -1,6 +1,29 @@
 # Shiftstats Implementation Spec
 
-Last updated: 2026-03-16
+Last updated: 2026-03-17
+
+## Status Snapshot (2026-03-17)
+
+Completed now:
+
+- authentication with protected app routes
+- PostgreSQL + Prisma schema/migrations + seed path
+- shift CRUD routes and pages
+- shift history filters on `/shifts`, `/dashboard`, and `/analytics`
+- shift history sorting controls on `/shifts`
+- user settings persistence on `/settings`
+- CSV export from shift history with filter-aware export payload
+- chart tooltip currency formatting and responsive container warning fix
+
+In progress now:
+
+- UX refinements for dense history data and smaller screens
+
+Next up (roadmap priority):
+
+- pagination on `/shifts` (query-driven page + pageSize)
+- mobile table UX polish for history readability
+- inline edit flow improvements from history row actions
 
 ## Project Identity
 
@@ -45,7 +68,7 @@ The MVP includes:
 
 The MVP does not include:
 
-- CSV import or export
+- CSV import
 - tax mode
 - recurring templates
 - calendar view
@@ -57,7 +80,7 @@ The MVP does not include:
 ## Core Product Rules
 
 - The app must track both `tips only` and `total compensation`.
-- `total compensation` means cash tips + card tips + base pay + other income.
+- `total compensation` means cash tips + card tips + (base pay * hours worked) + other income.
 - Every saved shift must have a normalized `hoursWorked` value.
 - A shift can be entered using either total hours or start and end time.
 - If start and end time are used, the app computes `hoursWorked` before saving.
@@ -237,7 +260,8 @@ The repo should treat `sample-data/initial-shifts.csv` as the canonical starter 
 ### Normalization
 
 - `totalTips = cashTips + cardTips`
-- `totalCompensation = cashTips + cardTips + basePay + otherIncome`
+- `baseCompensation = basePay * hoursWorked`
+- `totalCompensation = cashTips + cardTips + baseCompensation + otherIncome`
 - `totalEarned` should store `totalCompensation`
 - `hourlyRate = totalEarned / hoursWorked`
 
@@ -502,6 +526,8 @@ Possible later environment variables:
 - add month-over-month comparisons
 - add location and role breakdowns
 - improve mobile UX and loading states
+- add pagination controls for long shift history tables
+- improve row-level edit/delete ergonomics on mobile
 
 ### Phase 4: Expansion
 
@@ -538,6 +564,14 @@ Possible later environment variables:
 5. implement the shift form and CRUD flow
 6. implement dashboard summaries
 7. implement tables, filters, and charts
+
+## Immediate Next Build Order (Updated)
+
+1. add query-driven pagination to `/shifts`
+2. preserve filter and sort params across page navigation links
+3. improve mobile rendering of history rows and action controls
+4. add lightweight inline edit affordances from history rows
+5. add regression checks for filter + sort + pagination interactions
 
 ## Current Workspace Notes
 
