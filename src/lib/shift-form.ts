@@ -177,7 +177,8 @@ export function calculateShiftPreview(values: ShiftFormValues): ShiftPreview {
         new Decimal(0));
 
   const totalTips = cashTips.plus(cardTips);
-  const totalEarned = totalTips.plus(basePay).plus(otherIncome);
+  const baseCompensation = basePay.times(computedHours);
+  const totalEarned = totalTips.plus(baseCompensation).plus(otherIncome);
   const hourlyRate = computedHours.gt(0)
     ? totalEarned.div(computedHours)
     : new Decimal(0);
