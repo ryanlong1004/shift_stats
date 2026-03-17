@@ -13,9 +13,11 @@ Completed now:
 - shift history sorting controls on `/shifts`
 - query-driven pagination on `/shifts` with preserved list state
 - compact mobile quick-filter chips on `/shifts` (all/week/month)
+- sticky mobile add-shift CTA on `/shifts`
 - mobile-friendly shift history row cards (desktop table retained)
 - edit flow returns users to their prior filtered/sorted/paginated list state
 - inline delete confirmation for safer mobile row actions
+- mobile add/edit form polish: compensation hint + base hourly rate guidance + larger touch targets
 - formula correction on read path: `total = (base * hours) + cash + card + otherIncome`
 - user settings persistence on `/settings`
 - CSV export from shift history with filter-aware export payload
@@ -30,9 +32,9 @@ In progress now:
 
 Next up (roadmap priority):
 
-- sticky mobile primary action affordance for add-shift flow
 - delete refresh behavior regression check coverage
-- mobile-first add/edit form polish (touch targets + field hints)
+- analytics mobile readability pass (summary clarity + chart context)
+- deployment dry run to production-like environment
 
 ## Project Identity
 
@@ -576,11 +578,11 @@ Possible later environment variables:
 
 ## Immediate Next Build Order (Updated)
 
-1. add compact mobile quick filters to `/shifts`
-2. keep advanced filter controls available behind a compact mobile section
-3. add sticky mobile add-shift CTA behavior
-4. add regression checks for filter + sort + pagination + return-to-list flows
-5. expand analytics mobile readability pass (labels, spacing, chart summaries)
+1. add regression checks for delete refresh behavior
+2. expand analytics mobile readability pass (labels, spacing, chart summaries)
+3. run deployment dry run with `npm run check:release`
+4. deploy to staging/prod-like URL and execute manual smoke checks
+5. finalize go-live checklist signoff
 
 ## Current Workspace Notes
 

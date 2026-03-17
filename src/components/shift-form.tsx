@@ -226,6 +226,10 @@ export function ShiftForm({
         )}
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <div className="md:col-span-2 xl:col-span-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
+            Compensation formula: (Base hourly rate x Hours worked) + Cash tips
+            + Card tips + Other income = Total earned.
+          </div>
           <Field label="Cash tips" error={errors.cashTips}>
             <MoneyInput
               value={values.cashTips}
@@ -240,7 +244,11 @@ export function ShiftForm({
               error={errors.cardTips}
             />
           </Field>
-          <Field label="Base pay" error={errors.basePay}>
+          <Field
+            label="Base hourly rate"
+            hint="Example: enter 9.00 for $9/hour"
+            error={errors.basePay}
+          >
             <MoneyInput
               value={values.basePay}
               onChange={(nextValue) => updateValue("basePay", nextValue)}
@@ -376,16 +384,19 @@ export function ShiftForm({
 
 function Field({
   label,
+  hint,
   error,
   children,
 }: {
   label: string;
+  hint?: string;
   error?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="block space-y-2">
       <span className="text-sm font-medium text-slate-700">{label}</span>
+      {hint ? <span className="block text-xs text-slate-500">{hint}</span> : null}
       {children}
       {error ? <span className="text-sm text-rose-600">{error}</span> : null}
     </label>
@@ -409,6 +420,7 @@ function MoneyInput({
       <input
         type="text"
         inputMode="decimal"
+        placeholder="0.00"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={`${inputClassName(error)} pl-8`}
@@ -442,7 +454,7 @@ function PreviewCard({
 }
 
 function inputClassName(error?: string) {
-  return `w-full rounded-2xl border bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950 ${
+  return `w-full rounded-2xl border bg-white px-4 py-3.5 text-base text-slate-950 outline-none transition focus:border-slate-950 md:py-3 md:text-sm ${
     error ? "border-rose-300 focus:border-rose-500" : "border-slate-200"
   }`;
 }
