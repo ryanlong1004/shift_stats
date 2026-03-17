@@ -80,7 +80,7 @@ export async function POST(request: Request) {
         formatCurrency(row.hourlyRate),
         formatCurrency(row.cashTips),
         formatCurrency(row.cardTips),
-        formatCurrency(row.basePay),
+        formatCurrency(row.hourlyRate * row.hoursWorked),
         formatCurrency(row.otherIncome),
         row.location ?? "",
         row.role ?? "",
