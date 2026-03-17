@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 import {
   buildEditShiftHref,
@@ -97,6 +99,24 @@ function runChecks() {
   assert.equal(
     buildEditShiftHref("shift-123", "/dashboard"),
     "/shifts/shift-123/edit",
+  );
+
+  const deleteButtonPath = path.join(
+    process.cwd(),
+    "src/components/delete-shift-button.tsx",
+  );
+  const deleteButtonSource = readFileSync(deleteButtonPath, "utf8");
+  assert.ok(
+    deleteButtonSource.includes("router.refresh();"),
+    "Delete button must refresh router after successful delete",
+  );
+  assert.ok(
+    deleteButtonSource.includes("Confirm delete"),
+    "Delete button should keep explicit inline confirmation action",
+  );
+  assert.ok(
+    !deleteButtonSource.includes("window.confirm"),
+    "Delete flow should not regress to browser confirm dialog",
   );
 
   console.log("Shifts query-state regression checks passed.");

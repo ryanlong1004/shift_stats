@@ -25,6 +25,7 @@ Completed now:
 - regression checks added for filter/sort/pagination/quick-filter URL state
 - return-to-list sanitize/edit-link helpers with regression checks
 - release preflight command: `npm run check:release`
+- delete refresh behavior regression checks in `check:flows`
 
 In progress now:
 
@@ -32,7 +33,6 @@ In progress now:
 
 Next up (roadmap priority):
 
-- delete refresh behavior regression check coverage
 - analytics mobile readability pass (summary clarity + chart context)
 - deployment dry run to production-like environment
 
