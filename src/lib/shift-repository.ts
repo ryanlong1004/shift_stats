@@ -206,8 +206,14 @@ function mapDatabaseShift(shift: {
   notes: string | null;
 }): ShiftRecord {
   const shiftDate = format(shift.shiftDate, "yyyy-MM-dd");
-  const totalEarned = decimalToNumber(shift.totalEarned);
   const hoursWorked = decimalToNumber(shift.hoursWorked);
+  const cashTips = decimalToNumber(shift.cashTips);
+  const cardTips = decimalToNumber(shift.cardTips);
+  const basePay = decimalToNumber(shift.basePay);
+  const otherIncome = decimalToNumber(shift.otherIncome);
+  const totalEarned = Number(
+    (basePay * hoursWorked + cashTips + cardTips + otherIncome).toFixed(2),
+  );
 
   return {
     id: shift.id,
@@ -220,10 +226,10 @@ function mapDatabaseShift(shift: {
     hourlyRate:
       hoursWorked > 0 ? Number((totalEarned / hoursWorked).toFixed(2)) : 0,
     dayName: format(shift.shiftDate, "EEEE"),
-    cashTips: decimalToNumber(shift.cashTips),
-    cardTips: decimalToNumber(shift.cardTips),
-    basePay: decimalToNumber(shift.basePay),
-    otherIncome: decimalToNumber(shift.otherIncome),
+    cashTips,
+    cardTips,
+    basePay,
+    otherIncome,
     location: shift.location,
     role: shift.role,
     notes: shift.notes,
