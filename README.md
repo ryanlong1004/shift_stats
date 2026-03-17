@@ -26,6 +26,12 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+Run release preflight checks:
+
+```bash
+npm run check:release
+```
+
 ## Environment
 
 Create a local environment file from `.env.example` once database details are available.
@@ -121,3 +127,27 @@ docker run --rm -p 3000:3000 \
 ```
 
 To use database-backed reads and writes in a container, also pass `DATABASE_URL`.
+
+## Go-Live Checklist
+
+Before deploying to a live URL:
+
+1. Run `npm run check:release` locally.
+2. Confirm env vars are set in your hosting platform:
+   - `DATABASE_URL`
+   - `AUTH_SECRET`
+   - `AUTH_DEMO_EMAIL`
+   - `AUTH_DEMO_PASSWORD`
+   - `AUTH_TRUST_HOST`
+3. Run Prisma migrations in production using:
+
+```bash
+npm run prisma:migrate:deploy
+```
+
+4. Verify core live flows on mobile and desktop:
+   - sign in
+   - add shift
+   - edit shift and return to filtered list
+   - delete shift
+   - filter + sort + pagination interactions on `/shifts`

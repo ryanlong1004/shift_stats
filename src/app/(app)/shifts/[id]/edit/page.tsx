@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { ShiftForm } from "@/components/shift-form";
 import { getShiftFormValuesFromShiftRecord } from "@/lib/shift-form";
+import { sanitizeReturnTo } from "@/lib/shifts-query-state";
 import {
   getShiftRecordById,
   isDatabaseConfigured,
@@ -11,19 +12,6 @@ type EditShiftPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ returnTo?: string }>;
 };
-
-function sanitizeReturnTo(returnTo: string | undefined) {
-  if (!returnTo) {
-    return undefined;
-  }
-
-  // Only allow in-app return paths for shifts pages.
-  if (!returnTo.startsWith("/shifts")) {
-    return undefined;
-  }
-
-  return returnTo;
-}
 
 export default async function EditShiftPage({
   params,

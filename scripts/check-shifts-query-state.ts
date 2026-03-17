@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 
 import {
+  buildEditShiftHref,
   buildClearFiltersHref,
   buildPresetHref,
   buildShiftsHref,
   parseShiftsQueryState,
+  sanitizeReturnTo,
   type ShiftsPageSearchParams,
 } from "../src/lib/shifts-query-state";
 
@@ -82,6 +84,20 @@ function runChecks() {
   assert.equal(clearQuery.get("page"), "1");
   assert.equal(clearQuery.get("preset"), null);
   assert.equal(clearQuery.get("location"), null);
+
+  assert.equal(sanitizeReturnTo(undefined), undefined);
+  assert.equal(sanitizeReturnTo("/shifts?page=2"), "/shifts?page=2");
+  assert.equal(sanitizeReturnTo("https://evil.site"), undefined);
+  assert.equal(sanitizeReturnTo("/dashboard"), undefined);
+
+  assert.equal(
+    buildEditShiftHref("shift-123", "/shifts?page=3&sortBy=hours"),
+    "/shifts/shift-123/edit?returnTo=%2Fshifts%3Fpage%3D3%26sortBy%3Dhours",
+  );
+  assert.equal(
+    buildEditShiftHref("shift-123", "/dashboard"),
+    "/shifts/shift-123/edit",
+  );
 
   console.log("Shifts query-state regression checks passed.");
 }

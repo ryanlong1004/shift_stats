@@ -21,6 +21,8 @@ Completed now:
 - CSV export from shift history with filter-aware export payload
 - chart tooltip currency formatting and responsive container warning fix
 - regression checks added for filter/sort/pagination/quick-filter URL state
+- return-to-list sanitize/edit-link helpers with regression checks
+- release preflight command: `npm run check:release`
 
 In progress now:
 
@@ -29,7 +31,7 @@ In progress now:
 Next up (roadmap priority):
 
 - sticky mobile primary action affordance for add-shift flow
-- regression checks for return-to-list edit flow and delete refresh behavior
+- delete refresh behavior regression check coverage
 - mobile-first add/edit form polish (touch targets + field hints)
 
 ## Project Identity

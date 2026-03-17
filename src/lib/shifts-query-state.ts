@@ -50,7 +50,10 @@ export function parseShiftsQueryState(
   };
 }
 
-function appendFilters(params: URLSearchParams, searchParams: ShiftsPageSearchParams) {
+function appendFilters(
+  params: URLSearchParams,
+  searchParams: ShiftsPageSearchParams,
+) {
   if (searchParams.preset) {
     params.set("preset", searchParams.preset);
   }
@@ -119,4 +122,28 @@ export function buildClearFiltersHref(
   params.set("page", "1");
 
   return `/shifts?${params.toString()}`;
+}
+
+export function sanitizeReturnTo(returnTo: string | undefined) {
+  if (!returnTo) {
+    return undefined;
+  }
+
+  // Only allow in-app return paths for shifts pages.
+  if (!returnTo.startsWith("/shifts")) {
+    return undefined;
+  }
+
+  return returnTo;
+}
+
+export function buildEditShiftHref(id: string, returnTo?: string) {
+  const baseHref = `/shifts/${encodeURIComponent(id)}/edit`;
+  const safeReturnTo = sanitizeReturnTo(returnTo);
+
+  if (!safeReturnTo) {
+    return baseHref;
+  }
+
+  return `${baseHref}?returnTo=${encodeURIComponent(safeReturnTo)}`;
 }
