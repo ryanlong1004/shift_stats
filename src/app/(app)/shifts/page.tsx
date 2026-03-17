@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ExportShiftsButton } from "@/components/export-shifts-button";
 import { ShiftHistoryTable } from "@/components/shift-history-table";
 import {
   listShiftRecords,
@@ -110,12 +111,23 @@ export default async function ShiftsPage({
             authenticated and user-scoped across both sample and database modes.
           </p>
         </div>
-        <Link
-          href="/shifts/new"
-          className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-        >
-          Add shift
-        </Link>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <ExportShiftsButton
+            filters={{
+              preset: resolvedSearchParams.preset,
+              startDate: resolvedSearchParams.startDate,
+              endDate: resolvedSearchParams.endDate,
+              location: resolvedSearchParams.location,
+              role: resolvedSearchParams.role,
+            }}
+          />
+          <Link
+            href="/shifts/new"
+            className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          >
+            Add shift
+          </Link>
+        </div>
       </section>
 
       <form
