@@ -4,7 +4,23 @@ import { DeleteShiftButton } from "@/components/delete-shift-button";
 import { formatCurrency, formatDecimal } from "@/lib/formatters";
 import type { ShiftRecord } from "@/lib/shift-records";
 
-export function ShiftHistoryTable({ rows }: { rows: ShiftRecord[] }) {
+export function ShiftHistoryTable({
+  rows,
+  returnTo,
+}: {
+  rows: ShiftRecord[];
+  returnTo?: string;
+}) {
+  const buildEditHref = (id: string) => {
+    const baseHref = `/shifts/${encodeURIComponent(id)}/edit`;
+
+    if (!returnTo) {
+      return baseHref;
+    }
+
+    return `${baseHref}?returnTo=${encodeURIComponent(returnTo)}`;
+  };
+
   if (rows.length === 0) {
     return (
       <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/85 px-5 py-10 text-center text-sm text-slate-600 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
@@ -94,7 +110,7 @@ export function ShiftHistoryTable({ rows }: { rows: ShiftRecord[] }) {
 
             <div className="mt-4 flex items-center gap-2">
               <Link
-                href={`/shifts/${encodeURIComponent(row.id)}/edit`}
+                href={buildEditHref(row.id)}
                 className="inline-flex items-center rounded-full border border-slate-900/10 bg-slate-950 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
               >
                 Edit
@@ -154,7 +170,7 @@ export function ShiftHistoryTable({ rows }: { rows: ShiftRecord[] }) {
                 <td className="px-4 py-3 text-slate-700">
                   <div className="flex flex-col gap-2">
                     <Link
-                      href={`/shifts/${encodeURIComponent(row.id)}/edit`}
+                      href={buildEditHref(row.id)}
                       className="inline-flex items-center rounded-full border border-slate-900/10 bg-slate-950 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
                     >
                       Edit

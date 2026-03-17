@@ -17,6 +17,7 @@ type ShiftFormProps = {
   initialValues?: ShiftFormValues;
   shiftId?: string;
   persistenceEnabled: boolean;
+  returnTo?: string;
 };
 
 type FormErrors = Partial<Record<keyof ShiftFormValues, string>>;
@@ -26,6 +27,7 @@ export function ShiftForm({
   initialValues,
   shiftId,
   persistenceEnabled,
+  returnTo,
 }: ShiftFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<ShiftFormValues>(
@@ -117,7 +119,9 @@ export function ShiftForm({
           ? "Shift saved. Redirecting to history."
           : "Shift updated. Redirecting to history.",
       );
-      router.push("/shifts");
+      const nextHref =
+        returnTo && returnTo.startsWith("/shifts") ? returnTo : "/shifts";
+      router.push(nextHref);
       router.refresh();
     } catch {
       setStatusMessage(

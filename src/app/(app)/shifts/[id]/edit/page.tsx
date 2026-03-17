@@ -9,10 +9,29 @@ import {
 
 type EditShiftPageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 };
 
-export default async function EditShiftPage({ params }: EditShiftPageProps) {
+function sanitizeReturnTo(returnTo: string | undefined) {
+  if (!returnTo) {
+    return undefined;
+  }
+
+  // Only allow in-app return paths for shifts pages.
+  if (!returnTo.startsWith("/shifts")) {
+    return undefined;
+  }
+
+  return returnTo;
+}
+
+export default async function EditShiftPage({
+  params,
+  searchParams,
+}: EditShiftPageProps) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const returnTo = sanitizeReturnTo(resolvedSearchParams.returnTo);
   const row = await getShiftRecordById(decodeURIComponent(id));
 
   if (!row) {
@@ -39,6 +58,7 @@ export default async function EditShiftPage({ params }: EditShiftPageProps) {
         shiftId={row.id}
         initialValues={getShiftFormValuesFromShiftRecord(row)}
         persistenceEnabled={isDatabaseConfigured()}
+        returnTo={returnTo}
       />
     </div>
   );

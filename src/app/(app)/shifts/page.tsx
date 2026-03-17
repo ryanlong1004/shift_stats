@@ -146,6 +146,8 @@ export default async function ShiftsPage({
     return `/shifts?${params.toString()}`;
   }
 
+  const currentListHref = buildShiftsHref(safePage);
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 rounded-[1.75rem] border border-slate-900/10 bg-white/80 px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:flex-row md:items-end md:justify-between">
@@ -438,7 +440,7 @@ export default async function ShiftsPage({
         </form>
       </div>
 
-      <ShiftHistoryTable rows={paginatedRows} />
+      <ShiftHistoryTable rows={paginatedRows} returnTo={currentListHref} />
 
       <div className="flex items-center justify-between rounded-[1.25rem] border border-slate-900/10 bg-white/85 px-4 py-3 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
         <span>
