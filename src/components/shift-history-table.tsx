@@ -45,7 +45,7 @@ export function ShiftHistoryTable({ rows }: { rows: ShiftRecord[] }) {
                 {formatCurrency(row.cardTips)}
               </td>
               <td className="px-4 py-3 text-slate-700">
-                {formatCurrency(row.hourlyRate * row.hoursWorked)}
+                {formatCurrency(row.basePay * row.hoursWorked)}
               </td>
               <td className="px-4 py-3 text-slate-700">
                 {row.location ?? "-"}
