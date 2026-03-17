@@ -102,6 +102,12 @@ Seed the database from the sample CSV:
 npm run db:seed
 ```
 
+If formulas change or legacy totals need correction, recompute stored totals:
+
+```bash
+npm run db:recompute-totals
+```
+
 Stop the local database:
 
 ```bash

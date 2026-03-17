@@ -13,6 +13,7 @@
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
     "db:reset": "docker compose down -v",
+    "db:recompute-totals": "tsx scripts/recompute-shift-totals.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
