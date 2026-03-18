@@ -205,7 +205,7 @@ function mapDatabaseShift(shift: {
   role: string | null;
   notes: string | null;
 }): ShiftRecord {
-  const shiftDate = format(shift.shiftDate, "yyyy-MM-dd");
+  const shiftDate = shift.shiftDate.toISOString().slice(0, 10);
   const hoursWorked = decimalToNumber(shift.hoursWorked);
   const cashTips = decimalToNumber(shift.cashTips);
   const cardTips = decimalToNumber(shift.cardTips);
@@ -241,7 +241,7 @@ function buildPersistenceData(values: ShiftFormValues) {
   const preview = calculateShiftPreview(validated);
 
   return {
-    shiftDate: new Date(`${validated.shiftDate}T00:00:00`),
+    shiftDate: new Date(`${validated.shiftDate}T00:00:00.000Z`),
     inputMode: validated.inputMode,
     startTime:
       validated.inputMode === "timeRange" && validated.startTime
