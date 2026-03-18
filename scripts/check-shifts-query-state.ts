@@ -11,6 +11,10 @@ import {
   sanitizeReturnTo,
   type ShiftsPageSearchParams,
 } from "../src/lib/shifts-query-state";
+import {
+  formatUtcDateToDateOnly,
+  parseDateOnlyToUtc,
+} from "../src/lib/date-only";
 
 function parseQuery(url: string) {
   const [, query = ""] = url.split("?");
@@ -118,6 +122,10 @@ function runChecks() {
     !deleteButtonSource.includes("window.confirm"),
     "Delete flow should not regress to browser confirm dialog",
   );
+
+  const parsedUtcDate = parseDateOnlyToUtc("2026-03-17");
+  assert.equal(parsedUtcDate.toISOString(), "2026-03-17T00:00:00.000Z");
+  assert.equal(formatUtcDateToDateOnly(parsedUtcDate), "2026-03-17");
 
   console.log("Shifts query-state regression checks passed.");
 }

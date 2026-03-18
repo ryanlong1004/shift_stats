@@ -20,6 +20,7 @@ import {
   shiftFormSchema,
   type ShiftFormValues,
 } from "@/lib/shift-form";
+import { formatUtcDateToDateOnly, parseDateOnlyToUtc } from "@/lib/date-only";
 
 export function isDatabaseConfigured() {
   return Boolean(process.env.DATABASE_URL);
@@ -205,7 +206,7 @@ function mapDatabaseShift(shift: {
   role: string | null;
   notes: string | null;
 }): ShiftRecord {
-  const shiftDate = shift.shiftDate.toISOString().slice(0, 10);
+  const shiftDate = formatUtcDateToDateOnly(shift.shiftDate);
   const hoursWorked = decimalToNumber(shift.hoursWorked);
   const cashTips = decimalToNumber(shift.cashTips);
   const cardTips = decimalToNumber(shift.cardTips);
@@ -241,7 +242,7 @@ function buildPersistenceData(values: ShiftFormValues) {
   const preview = calculateShiftPreview(validated);
 
   return {
-    shiftDate: new Date(`${validated.shiftDate}T00:00:00.000Z`),
+    shiftDate: parseDateOnlyToUtc(validated.shiftDate),
     inputMode: validated.inputMode,
     startTime:
       validated.inputMode === "timeRange" && validated.startTime
@@ -297,11 +298,13 @@ export async function listShiftRecords(filters?: ShiftListFilters) {
     where.shiftDate = {};
 
     if (startDate) {
-      where.shiftDate.gte = new Date(`${startDate}T00:00:00.000Z`);
+      where.shiftDate.gte = parseDateOnlyToUtc(startDate);
     }
 
     if (endDate) {
-      where.shiftDate.lte = new Date(`${endDate}T23:59:59.999Z`);
+      const endDateUtc = parseDateOnlyToUtc(endDate);
+      endDateUtc.setUTCHours(23, 59, 59, 999);
+      where.shiftDate.lte = endDateUtc;
     }
   }
 
