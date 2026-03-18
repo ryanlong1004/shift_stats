@@ -33,11 +33,10 @@ export default async function EditShiftPage({
           Edit Shift
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
-          Edit sample shift
+          Update shift details
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-          This route hydrates the shared form from the current repository data
-          source, using Prisma when configured and sample data otherwise.
+          Make changes to hours, pay, tips, or notes and save when ready.
         </p>
       </section>
 

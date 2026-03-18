@@ -42,8 +42,8 @@ export function AppShell({
                 Earnings at a glance
               </h1>
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                Protected app shell with sample fallback and database-backed
-                reads when configured.
+                View shifts, track trends, and keep compensation records in one
+                place.
               </p>
             </div>
           </Link>

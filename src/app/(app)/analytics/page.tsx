@@ -52,11 +52,11 @@ export default async function AnalyticsPage({
           Analytics
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
-          Performance trends from sample data
+          Performance trends
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-          These visuals are the temporary analytics layer until the
-          database-backed aggregate queries replace the sample helper.
+          Explore how earnings and hourly rates change by date, weekday,
+          location, and role.
         </p>
       </section>
 

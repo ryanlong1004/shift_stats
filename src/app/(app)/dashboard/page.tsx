@@ -43,11 +43,11 @@ export default async function DashboardPage({
           Dashboard
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
-          Sample-driven earnings overview
+          Earnings overview
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-          This route is using the screenshot-derived CSV as the temporary source
-          of truth while database-backed dashboard queries are being built.
+          Track your recent performance with weekly and monthly totals, hourly
+          trends, and key shift highlights.
         </p>
       </section>
 

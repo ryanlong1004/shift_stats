@@ -306,9 +306,8 @@ export function ShiftForm({
           <div className="flex items-start gap-3 rounded-2xl border border-sky-300/60 bg-sky-50 px-4 py-3 text-sm text-sky-900">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-none" />
             <span>
-              The form is fully wired, but writes stay disabled until
-              `DATABASE_URL` is configured. The app is currently in sample-data
-              mode.
+              Saving is temporarily unavailable. You can still review
+              calculations before submitting once storage is available.
             </span>
           </div>
         ) : null}
@@ -326,8 +325,7 @@ export function ShiftForm({
                 : "Update shift"}
           </button>
           <p className="text-sm text-slate-500">
-            This form now posts to the route-handler CRUD layer while keeping
-            the roadmap validation and calculation rules intact.
+            Totals update live as you edit hours, base pay, and tips.
           </p>
         </div>
       </form>
@@ -369,12 +367,12 @@ export function ShiftForm({
             Form behavior
           </p>
           <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
-            <li>Validates the roadmap field rules with `zod`.</li>
+            <li>Checks required fields before saving.</li>
             <li>Supports total-hours entry or computed time-range entry.</li>
             <li>
               Calculates total tips, total compensation, and hourly rate live.
             </li>
-            <li>Keeps add and edit flows on the same component contract.</li>
+            <li>Uses the same flow for adding and editing shifts.</li>
           </ul>
         </div>
       </div>

@@ -30,7 +30,7 @@ export default async function Home() {
           <div className="grid gap-10 px-6 py-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:py-10">
             <div className="space-y-6">
               <div className="inline-flex items-center rounded-full border border-slate-900/10 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
-                Shiftstats MVP foundation
+                Shiftstats
               </div>
               <div className="space-y-4">
                 <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
@@ -38,13 +38,8 @@ export default async function Home() {
                   earnings insight.
                 </h1>
                 <p className="max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
-                  The app scaffold is in place, and the current UI can read from
-                  Prisma when `DATABASE_URL` is configured or fall back to the
-                  screenshot-derived dataset in{" "}
-                  <code className="rounded bg-slate-900/5 px-1.5 py-0.5 text-sm">
-                    sample-data/initial-shifts.csv
-                  </code>
-                  .
+                  Log every shift, track compensation trends, and understand
+                  your real hourly performance across roles and locations.
                 </p>
                 <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                   <Link
@@ -57,7 +52,7 @@ export default async function Home() {
                     href="/login"
                     className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
                   >
-                    Open protected app
+                    Open app
                   </Link>
                 </div>
               </div>
@@ -85,11 +80,11 @@ export default async function Home() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
                     {isDatabaseConfigured()
-                      ? "Deployment-ready data mode"
-                      : "Current sample snapshot"}
+                      ? "Current performance snapshot"
+                      : "Recent performance snapshot"}
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">
-                    Starter dashboard targets
+                    Current snapshot
                   </h2>
                 </div>
                 <div className="rounded-full bg-white/10 p-2 text-cyan-200">
@@ -99,7 +94,7 @@ export default async function Home() {
 
               <div className="mt-6 space-y-4 text-sm text-slate-300">
                 <SnapshotRow
-                  label="Sample shifts"
+                  label="Shifts tracked"
                   value={String(snapshot.totalShifts)}
                 />
                 <SnapshotRow
@@ -122,7 +117,7 @@ export default async function Home() {
 
               <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-                  Immediate build path
+                  What you can do
                 </p>
                 <ol className="mt-4 space-y-3 text-sm text-slate-200">
                   <li className="flex items-start gap-3">
@@ -130,7 +125,7 @@ export default async function Home() {
                       1
                     </span>
                     <span>
-                      Prisma schema and seed flow wired to the sample CSV.
+                      Log shifts with hours, base pay, tips, and notes.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
@@ -138,8 +133,8 @@ export default async function Home() {
                       2
                     </span>
                     <span>
-                      Protected routes, app shell, and shift CRUD
-                      implementation.
+                      Filter and review shift history by time, location, and
+                      role.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
@@ -147,7 +142,7 @@ export default async function Home() {
                       3
                     </span>
                     <span>
-                      Dashboard summaries and the first analytics charts.
+                      Compare trends with dashboard and analytics views.
                     </span>
                   </li>
                 </ol>
@@ -161,14 +156,14 @@ export default async function Home() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  Sample data
+                  Recent shifts
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                  Screenshot-derived shift rows
+                  Snapshot of tracked earnings
                 </h2>
               </div>
               <div className="flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1.5 text-sm font-medium text-white">
-                CSV seed ready
+                Ready to review
                 <ArrowRight className="h-4 w-4" />
               </div>
             </div>
@@ -214,28 +209,28 @@ export default async function Home() {
 
           <div className="rounded-[1.75rem] border border-slate-900/10 bg-[#0f172a] p-6 text-slate-50 shadow-[0_20px_60px_rgba(15,23,42,0.16)]">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/80">
-              Implementation status
+              Platform highlights
             </p>
             <h2 className="mt-2 text-2xl font-semibold">
-              What is already wired
+              Built for day-to-day use
             </h2>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <FeatureCard
-                title="App scaffold"
-                body="Next.js App Router with TypeScript, Tailwind, ESLint, and project-specific branding."
+                title="Secure sign-in"
+                body="Access your workspace through protected routes designed for authenticated usage."
               />
               <FeatureCard
-                title="Data baseline"
-                body="Sample CSV checked in and exposed through a server-side helper for repeatable local development."
+                title="Shift tracking"
+                body="Capture dates, times, roles, compensation, and notes with live total calculations."
               />
               <FeatureCard
-                title="Persistence prep"
-                body="Prisma schema and seed script prepared for PostgreSQL-backed shift data."
+                title="Reporting views"
+                body="Review totals, averages, and trend charts to spot your strongest shifts."
               />
               <FeatureCard
-                title="Build direction"
-                body="The implementation spec remains the source of truth for models, routes, and acceptance checks."
+                title="Export support"
+                body="Download filtered history as CSV for payroll checks and personal records."
               />
             </div>
           </div>

@@ -112,11 +112,11 @@ export default async function ShiftsPage({
             Shift history
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
-            Shift history with filters
+            Shift history
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-            Filter by time range, location, and role. The table remains
-            authenticated and user-scoped across both sample and database modes.
+            Filter by time range, location, and role to quickly find the shifts
+            you need.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

@@ -9,12 +9,11 @@ export default function NewShiftPage() {
           Add Shift
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
-          Shift form shell
+          Add a new shift
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-          The MVP form is now wired for the roadmap field list, validation
-          rules, and live calculations. Persistence is the next step once
-          database-backed route handlers are in place.
+          Enter your shift details to calculate total earnings and hourly rate
+          before saving.
         </p>
       </section>
 
