@@ -32,6 +32,12 @@ Run release preflight checks:
 npm run check:release
 ```
 
+Run authenticated smoke checks (against local or staging URL):
+
+```bash
+SMOKE_BASE_URL=http://localhost:3003 npm run check:smoke
+```
+
 Run production mode locally (standalone server):
 
 ```bash
@@ -152,19 +158,20 @@ To use database-backed reads and writes in a container, also pass `DATABASE_URL`
 Before deploying to a live URL:
 
 1. Run `npm run check:release` locally.
-2. Confirm env vars are set in your hosting platform:
+2. Run `SMOKE_BASE_URL=<staging-url> npm run check:smoke` against your staging deployment.
+3. Confirm env vars are set in your hosting platform:
    - `DATABASE_URL`
    - `AUTH_SECRET`
    - `AUTH_DEMO_EMAIL`
    - `AUTH_DEMO_PASSWORD`
    - `AUTH_TRUST_HOST`
-3. Run Prisma migrations in production using:
+4. Run Prisma migrations in production using:
 
 ```bash
 npm run prisma:migrate:deploy
 ```
 
-4. Verify core live flows on mobile and desktop:
+5. Verify core live flows on mobile and desktop:
    - sign in
    - add shift
    - edit shift and return to filtered list

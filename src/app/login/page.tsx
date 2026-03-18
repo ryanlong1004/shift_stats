@@ -26,13 +26,11 @@ export default async function LoginPage() {
             Shiftstats authentication
           </div>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-            Sign in before you touch protected shift data.
+            Sign in to access your shift history.
           </h1>
           <p className="max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
-            Auth.js is now in place, and protected routes are scoped to the
-            signed-in user. The current provider is intentionally simple so
-            local development and container deployment stay easy to wire with
-            environment variables.
+            Your dashboard, shifts, analytics, and settings are available after
+            sign-in.
           </p>
 
           {showDevelopmentHint ? (
