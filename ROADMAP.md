@@ -27,6 +27,7 @@ Completed now:
 - release preflight command: `npm run check:release`
 - delete refresh behavior regression checks in `check:flows`
 - standalone production-mode dry run validated with required auth env vars
+- local production smoke checks validated on key routes (`/`, `/login`, `/dashboard`, `/shifts`, `/api/auth/session`)
 
 In progress now:
 
