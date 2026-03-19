@@ -2,6 +2,7 @@ import {
   endOfMonth,
   endOfWeek,
   format,
+  parseISO,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
@@ -226,7 +227,7 @@ function mapDatabaseShift(shift: {
     hoursWorked,
     hourlyRate:
       hoursWorked > 0 ? Number((totalEarned / hoursWorked).toFixed(2)) : 0,
-    dayName: format(shift.shiftDate, "EEEE"),
+    dayName: format(parseISO(shiftDate), "EEEE"),
     cashTips,
     cardTips,
     basePay,
