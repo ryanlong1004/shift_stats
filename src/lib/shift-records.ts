@@ -52,6 +52,10 @@ function round(value: number) {
   return Number(value.toFixed(2));
 }
 
+function getWeekdayFromShiftDate(shiftDate: string) {
+  return format(parseISO(shiftDate), "EEEE");
+}
+
 export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
   if (rows.length === 0) {
     return {
@@ -82,10 +86,11 @@ export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
   const weekdayMap = new Map<string, { earned: number; hours: number }>();
 
   for (const row of rows) {
-    const current = weekdayMap.get(row.dayName) ?? { earned: 0, hours: 0 };
+    const weekday = getWeekdayFromShiftDate(row.shiftDate);
+    const current = weekdayMap.get(weekday) ?? { earned: 0, hours: 0 };
     current.earned += row.totalEarned;
     current.hours += row.hoursWorked;
-    weekdayMap.set(row.dayName, current);
+    weekdayMap.set(weekday, current);
   }
 
   const bestWeekday = Array.from(weekdayMap.entries()).reduce(
@@ -166,10 +171,11 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
   const weekdayMap = new Map<string, { earned: number; hours: number }>();
 
   for (const row of sortedRows) {
-    const current = weekdayMap.get(row.dayName) ?? { earned: 0, hours: 0 };
+    const weekday = getWeekdayFromShiftDate(row.shiftDate);
+    const current = weekdayMap.get(weekday) ?? { earned: 0, hours: 0 };
     current.earned += row.totalEarned;
     current.hours += row.hoursWorked;
-    weekdayMap.set(row.dayName, current);
+    weekdayMap.set(weekday, current);
   }
 
   const weekdaySeries = Array.from(weekdayMap.entries()).map(

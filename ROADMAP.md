@@ -31,6 +31,7 @@ Completed now:
 - authenticated smoke script added: `npm run check:smoke`
 - one-command local production smoke runner added: `npm run check:smoke:local`
 - analytics mobile readability improvements shipped (compact axis labels, clearer filter summaries, quick takeaways)
+- weekday analytics hardened to derive from `shiftDate` with regression checks for stale `dayName` mismatches
 
 In progress now:
 

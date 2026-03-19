@@ -15,6 +15,10 @@ import {
   formatUtcDateToDateOnly,
   parseDateOnlyToUtc,
 } from "../src/lib/date-only";
+import {
+  buildDashboardSnapshot,
+  type ShiftRecord,
+} from "../src/lib/shift-records";
 
 function parseQuery(url: string) {
   const [, query = ""] = url.split("?");
@@ -126,6 +130,36 @@ function runChecks() {
   const parsedUtcDate = parseDateOnlyToUtc("2026-03-17");
   assert.equal(parsedUtcDate.toISOString(), "2026-03-17T00:00:00.000Z");
   assert.equal(formatUtcDateToDateOnly(parsedUtcDate), "2026-03-17");
+
+  const weekdayConsistencyRows: ShiftRecord[] = [
+    {
+      id: "weekday-regression-1",
+      shiftDate: "2026-03-14",
+      inputMode: "hours",
+      startTime: null,
+      endTime: null,
+      totalEarned: 300,
+      hoursWorked: 7,
+      hourlyRate: 42.86,
+      dayName: "Friday",
+      cashTips: 0,
+      cardTips: 0,
+      basePay: 0,
+      otherIncome: 300,
+      location: null,
+      role: null,
+      notes: null,
+    },
+  ];
+
+  const weekdayConsistencySnapshot = buildDashboardSnapshot(
+    weekdayConsistencyRows,
+  );
+  assert.equal(
+    weekdayConsistencySnapshot.bestWeekday,
+    "Saturday",
+    "Best weekday should be derived from shiftDate, not stale dayName",
+  );
 
   console.log("Shifts query-state regression checks passed.");
 }
