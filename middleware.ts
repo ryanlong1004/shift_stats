@@ -1,6 +1,4 @@
-import { NextResponse } from "next/server";
-
-import { auth } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 const protectedPrefixes = [
   "/dashboard",
@@ -10,8 +8,17 @@ const protectedPrefixes = [
   "/api/shifts",
 ];
 
-export default auth((request) => {
-  const isLoggedIn = Boolean(request.auth);
+const sessionCookieNames = [
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+];
+
+export default function middleware(request: NextRequest) {
+  const isLoggedIn = sessionCookieNames.some((cookieName) =>
+    Boolean(request.cookies.get(cookieName)?.value),
+  );
   const pathname = request.nextUrl.pathname;
   const isProtectedRoute = protectedPrefixes.some((prefix) =>
     pathname.startsWith(prefix),
@@ -30,7 +37,7 @@ export default auth((request) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
