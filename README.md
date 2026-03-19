@@ -183,3 +183,24 @@ npm run prisma:migrate:deploy
    - edit shift and return to filtered list
    - delete shift
    - filter + sort + pagination interactions on `/shifts`
+
+## Custom Domain (shift-stats.com)
+
+Configure the production domain in your hosting provider (Vercel):
+
+1. Add both `shift-stats.com` and `www.shift-stats.com` in Project -> Settings -> Domains.
+2. Pick a canonical domain (recommended: `shift-stats.com`) and redirect the other.
+
+DNS records (at your registrar):
+
+- `A` record: host `@` -> `76.76.21.21`
+- `CNAME` record: host `www` -> `cname.vercel-dns.com`
+
+After DNS propagates, run a domain smoke check:
+
+```bash
+SMOKE_BASE_URL=https://shift-stats.com \
+AUTH_DEMO_EMAIL=demo@shiftstats.local \
+AUTH_DEMO_PASSWORD=shiftstats-demo \
+npm run check:smoke
+```

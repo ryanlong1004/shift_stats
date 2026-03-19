@@ -32,6 +32,7 @@ Completed now:
 - one-command local production smoke runner added: `npm run check:smoke:local`
 - analytics mobile readability improvements shipped (compact axis labels, clearer filter summaries, quick takeaways)
 - weekday analytics hardened to derive from `shiftDate` with regression checks for stale `dayName` mismatches
+- production domain secured: `shift-stats.com`
 
 In progress now:
 
@@ -39,8 +40,9 @@ In progress now:
 
 Next up (roadmap priority):
 
-- deploy to staging/prod-like URL and execute manual smoke checks
-- run `SMOKE_BASE_URL=<staging-url> npm run check:smoke` against staging
+- configure domain DNS and hosting bindings for `shift-stats.com` + `www.shift-stats.com`
+- run `SMOKE_BASE_URL=https://shift-stats.com npm run check:smoke` against production domain
+- execute final manual smoke checks on `https://shift-stats.com` (desktop + mobile)
 
 ## Project Identity
 
