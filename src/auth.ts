@@ -2,8 +2,6 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
-import { getPrismaClient, hasDatabaseUrl } from "@/lib/prisma";
-
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -47,6 +45,10 @@ function getTrustHost() {
   return true;
 }
 
+function hasDatabaseUrl() {
+  return Boolean(process.env.DATABASE_URL);
+}
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   secret: getAuthSecret(),
   trustHost: getTrustHost(),
@@ -86,6 +88,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const name = "Shiftstats Demo";
 
         if (hasDatabaseUrl()) {
+          const { getPrismaClient } = await import("@/lib/prisma");
           const prisma = getPrismaClient();
           const user = await prisma.user.upsert({
             where: { email: submittedEmail },
