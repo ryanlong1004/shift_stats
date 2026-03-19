@@ -38,6 +38,12 @@ Run authenticated smoke checks (against local or staging URL):
 SMOKE_BASE_URL=http://localhost:3003 npm run check:smoke
 ```
 
+Run a full local production smoke flow in one command (build + start + authenticated checks + cleanup):
+
+```bash
+npm run check:smoke:local
+```
+
 Run production mode locally (standalone server):
 
 ```bash

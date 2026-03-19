@@ -29,6 +29,7 @@ Completed now:
 - standalone production-mode dry run validated with required auth env vars
 - local production smoke checks validated on key routes (`/`, `/login`, `/dashboard`, `/shifts`, `/api/auth/session`)
 - authenticated smoke script added: `npm run check:smoke`
+- one-command local production smoke runner added: `npm run check:smoke:local`
 - analytics mobile readability improvements shipped (compact axis labels, clearer filter summaries, quick takeaways)
 
 In progress now:
