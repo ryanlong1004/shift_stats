@@ -1,8 +1,8 @@
 # Shiftstats Implementation Spec
 
-Last updated: 2026-03-17
+Last updated: 2026-03-19
 
-## Status Snapshot (2026-03-17)
+## Status Snapshot (2026-03-19)
 
 Completed now:
 
@@ -29,6 +29,7 @@ Completed now:
 - standalone production-mode dry run validated with required auth env vars
 - local production smoke checks validated on key routes (`/`, `/login`, `/dashboard`, `/shifts`, `/api/auth/session`)
 - authenticated smoke script added: `npm run check:smoke`
+- analytics mobile readability improvements shipped (compact axis labels, clearer filter summaries, quick takeaways)
 
 In progress now:
 
@@ -36,7 +37,6 @@ In progress now:
 
 Next up (roadmap priority):
 
-- analytics mobile readability pass (summary clarity + chart context)
 - deploy to staging/prod-like URL and execute manual smoke checks
 - run `SMOKE_BASE_URL=<staging-url> npm run check:smoke` against staging
 

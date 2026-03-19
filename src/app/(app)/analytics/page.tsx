@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LazyEarningsTrendChart } from "@/components/charts/lazy-earnings-trend-chart";
 import { LazyWeekdayPerformanceChart } from "@/components/charts/lazy-weekday-performance-chart";
 import { SummaryCard } from "@/components/summary-card";
+import { formatCurrency } from "@/lib/formatters";
 import {
   getDashboardSnapshot,
   type ShiftListFilters,
@@ -139,17 +140,37 @@ export default async function AnalyticsPage({
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          Current filter: {preset === "all" ? "All shifts" : preset}
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Current filter
+          </p>
+          <p className="mt-2 text-base font-medium text-slate-900">
+            {preset === "all" ? "All shifts" : preset}
+          </p>
         </div>
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          Date range: {resolvedSearchParams.startDate ?? "-"} to{" "}
-          {resolvedSearchParams.endDate ?? "-"}
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Date range
+          </p>
+          <p className="mt-2 text-base font-medium text-slate-900">
+            {resolvedSearchParams.startDate ?? "-"} to{" "}
+            {resolvedSearchParams.endDate ?? "-"}
+          </p>
         </div>
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          Location: {resolvedSearchParams.location || "All"}
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Location
+          </p>
+          <p className="mt-2 text-base font-medium text-slate-900">
+            {resolvedSearchParams.location || "All"}
+          </p>
         </div>
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          Role: {resolvedSearchParams.role || "All"}
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Role
+          </p>
+          <p className="mt-2 text-base font-medium text-slate-900">
+            {resolvedSearchParams.role || "All"}
+          </p>
         </div>
       </div>
 
@@ -167,6 +188,36 @@ export default async function AnalyticsPage({
           value={snapshot.totalHours}
           kind="decimal"
         />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/85 px-4 py-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Best weekday
+          </p>
+          <p className="mt-2 text-xl font-semibold text-slate-950">
+            {snapshot.bestWeekday}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            {formatCurrency(snapshot.bestWeekdayRate)} average hourly rate.
+          </p>
+        </div>
+
+        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/85 px-4 py-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Top shift
+          </p>
+          <p className="mt-2 text-xl font-semibold text-slate-950">
+            {snapshot.bestShift
+              ? formatCurrency(snapshot.bestShift.totalEarned)
+              : "No shifts yet"}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            {snapshot.bestShift
+              ? `${snapshot.bestShift.shiftDate} over ${snapshot.bestShift.hoursWorked.toFixed(2)} hours`
+              : "Log your first shift to unlock this summary."}
+          </p>
+        </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
