@@ -1,7 +1,18 @@
 import { ShiftForm } from "@/components/shift-form";
-import { isDatabaseConfigured } from "@/lib/shift-repository";
+import {
+  isDatabaseConfigured,
+  listShiftRecords,
+} from "@/lib/shift-repository";
 
-export default function NewShiftPage() {
+export default async function NewShiftPage() {
+  const allRows = await listShiftRecords();
+  const locationOptions = Array.from(
+    new Set(allRows.map((row) => row.location).filter(Boolean)),
+  ) as string[];
+  const roleOptions = Array.from(
+    new Set(allRows.map((row) => row.role).filter(Boolean)),
+  ) as string[];
+
   return (
     <div className="space-y-6">
       <section className="rounded-[1.75rem] border border-slate-900/10 bg-white/80 px-6 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
@@ -17,7 +28,12 @@ export default function NewShiftPage() {
         </p>
       </section>
 
-      <ShiftForm mode="create" persistenceEnabled={isDatabaseConfigured()} />
+      <ShiftForm
+        mode="create"
+        persistenceEnabled={isDatabaseConfigured()}
+        locationOptions={locationOptions}
+        roleOptions={roleOptions}
+      />
     </div>
   );
 }

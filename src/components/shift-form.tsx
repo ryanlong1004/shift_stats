@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Clock3, DollarSign, ReceiptText } from "lucide-react";
+import { format, parseISO } from "date-fns";
 
 import { formatCurrency, formatDecimal } from "@/lib/formatters";
 import {
@@ -18,6 +19,8 @@ type ShiftFormProps = {
   shiftId?: string;
   persistenceEnabled: boolean;
   returnTo?: string;
+  locationOptions?: string[];
+  roleOptions?: string[];
 };
 
 type FormErrors = Partial<Record<keyof ShiftFormValues, string>>;
@@ -28,6 +31,8 @@ export function ShiftForm({
   shiftId,
   persistenceEnabled,
   returnTo,
+  locationOptions = [],
+  roleOptions = [],
 }: ShiftFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<ShiftFormValues>(
@@ -38,6 +43,17 @@ export function ShiftForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const preview = useMemo(() => calculateShiftPreview(values), [values]);
+  const previewDayLabel = useMemo(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(values.shiftDate)) {
+      return null;
+    }
+
+    try {
+      return format(parseISO(values.shiftDate), "EEEE");
+    } catch {
+      return null;
+    }
+  }, [values.shiftDate]);
 
   function updateValue<Key extends keyof ShiftFormValues>(
     field: Key,
@@ -268,20 +284,36 @@ export function ShiftForm({
           <Field label="Location" error={errors.location}>
             <input
               type="text"
+              list="location-options"
               placeholder="Downtown"
               value={values.location}
               onChange={(event) => updateValue("location", event.target.value)}
               className={inputClassName(errors.location)}
             />
+            {locationOptions.length > 0 ? (
+              <datalist id="location-options">
+                {locationOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+            ) : null}
           </Field>
           <Field label="Role" error={errors.role}>
             <input
               type="text"
+              list="role-options"
               placeholder="Server"
               value={values.role}
               onChange={(event) => updateValue("role", event.target.value)}
               className={inputClassName(errors.role)}
             />
+            {roleOptions.length > 0 ? (
+              <datalist id="role-options">
+                {roleOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+            ) : null}
           </Field>
         </div>
 
@@ -338,6 +370,9 @@ export function ShiftForm({
           <h2 className="mt-2 text-2xl font-semibold">
             Calculated shift totals
           </h2>
+          <p className="mt-2 text-sm text-slate-300">
+            Day of week: <span className="font-medium text-white">{previewDayLabel ?? "Pick a shift date"}</span>
+          </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <PreviewCard
               icon={<Clock3 className="h-4 w-4" />}

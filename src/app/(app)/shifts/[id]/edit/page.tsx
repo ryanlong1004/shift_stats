@@ -6,6 +6,7 @@ import { sanitizeReturnTo } from "@/lib/shifts-query-state";
 import {
   getShiftRecordById,
   isDatabaseConfigured,
+  listShiftRecords,
 } from "@/lib/shift-repository";
 
 type EditShiftPageProps = {
@@ -20,7 +21,16 @@ export default async function EditShiftPage({
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
   const returnTo = sanitizeReturnTo(resolvedSearchParams.returnTo);
-  const row = await getShiftRecordById(decodeURIComponent(id));
+  const [row, allRows] = await Promise.all([
+    getShiftRecordById(decodeURIComponent(id)),
+    listShiftRecords(),
+  ]);
+  const locationOptions = Array.from(
+    new Set(allRows.map((entry) => entry.location).filter(Boolean)),
+  ) as string[];
+  const roleOptions = Array.from(
+    new Set(allRows.map((entry) => entry.role).filter(Boolean)),
+  ) as string[];
 
   if (!row) {
     notFound();
@@ -46,6 +56,8 @@ export default async function EditShiftPage({
         initialValues={getShiftFormValuesFromShiftRecord(row)}
         persistenceEnabled={isDatabaseConfigured()}
         returnTo={returnTo}
+        locationOptions={locationOptions}
+        roleOptions={roleOptions}
       />
     </div>
   );
