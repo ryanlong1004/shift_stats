@@ -386,6 +386,38 @@ export async function createShift(values: ShiftFormValues) {
   };
 }
 
+export async function importShifts(values: ShiftFormValues[]) {
+  await getCurrentUserContext();
+
+  if (!isDatabaseConfigured()) {
+    return {
+      ok: false as const,
+      status: 503,
+      message:
+        "DATABASE_URL is not configured yet. Import actions are disabled while the app is in sample-data mode.",
+    };
+  }
+
+  const prisma = getPrismaClient();
+  const { userId } = await getCurrentUserContext();
+  const created = await prisma.$transaction(
+    values.map((value) =>
+      prisma.shift.create({
+        data: {
+          userId: userId ?? "",
+          ...buildPersistenceData(value),
+        },
+      }),
+    ),
+  );
+
+  return {
+    ok: true as const,
+    count: created.length,
+    shifts: created.map(mapDatabaseShift),
+  };
+}
+
 export async function updateShift(id: string, values: ShiftFormValues) {
   await getCurrentUserContext();
 

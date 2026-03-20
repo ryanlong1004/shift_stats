@@ -19,6 +19,7 @@ import {
   buildDashboardSnapshot,
   type ShiftRecord,
 } from "../src/lib/shift-records";
+import { parseShiftImportCsv } from "../src/lib/shift-import";
 
 function parseQuery(url: string) {
   const [, query = ""] = url.split("?");
@@ -160,6 +161,19 @@ function runChecks() {
     "Saturday",
     "Best weekday should be derived from shiftDate, not stale dayName",
   );
+
+  const importExamplePath = path.join(
+    process.cwd(),
+    "shifts-export-2026-03-20.csv",
+  );
+  const importExampleCsv = readFileSync(importExamplePath, "utf8");
+  const parsedImport = parseShiftImportCsv(importExampleCsv);
+  assert.equal(parsedImport.rows.length, 7);
+  assert.equal(parsedImport.rows[0]?.shiftDate, "2026-03-19");
+  assert.equal(parsedImport.rows[0]?.hoursWorked, "4.00");
+  assert.equal(parsedImport.rows[0]?.basePay, "9.00");
+  assert.equal(parsedImport.rows[0]?.location, "Camelot");
+  assert.equal(parsedImport.rows[3]?.otherIncome, "255.00");
 
   console.log("Shifts query-state regression checks passed.");
 }

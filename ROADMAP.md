@@ -21,6 +21,7 @@ Completed now:
 - formula correction on read path: `total = (base * hours) + cash + card + otherIncome`
 - user settings persistence on `/settings`
 - CSV export from shift history with filter-aware export payload
+- CSV import from Shiftstats export format on `/shifts/import`
 - chart tooltip currency formatting and responsive container warning fix
 - regression checks added for filter/sort/pagination/quick-filter URL state
 - return-to-list sanitize/edit-link helpers with regression checks
@@ -80,6 +81,7 @@ The MVP includes:
 
 - authentication
 - shift create, read, update, and delete
+- CSV import/export
 - dashboard summary cards
 - shift history table with filters
 - a first chart set
@@ -87,7 +89,6 @@ The MVP includes:
 
 The MVP does not include:
 
-- CSV import
 - tax mode
 - recurring templates
 - calendar view

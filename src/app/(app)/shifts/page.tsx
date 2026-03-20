@@ -130,6 +130,12 @@ export default async function ShiftsPage({
             }}
           />
           <Link
+            href="/shifts/import"
+            className="inline-flex items-center rounded-full border border-slate-900/10 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Import CSV
+          </Link>
+          <Link
             href="/shifts/new"
             className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
           >

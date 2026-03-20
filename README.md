@@ -132,6 +132,21 @@ The starter dataset comes from the screenshot-derived rows in `sample-data/initi
 
 It currently preserves totals by mapping each row into the richer shift schema with `otherIncome = totalEarned` and zeroed tip and base-pay fields.
 
+## CSV Import and Export
+
+Shift history supports both CSV export and import.
+
+- Export from the shifts page using `Export CSV`
+- Import from `/shifts/import`
+
+The importer currently expects the Shiftstats export format, including these headers:
+
+```text
+Date,Hours Worked,Total Earned,Hourly Rate,Cash Tips,Card Tips,Base Pay,Other Income,Location,Role
+```
+
+Notes are also supported if a `Notes` column is present.
+
 ## Docker
 
 The app is configured for container deployment with:
