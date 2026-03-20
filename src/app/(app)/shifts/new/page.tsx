@@ -1,5 +1,6 @@
 import { ShiftForm } from "@/components/shift-form";
 import { isDatabaseConfigured, listShiftRecords } from "@/lib/shift-repository";
+import { getUserSettings } from "@/lib/settings-repository";
 
 export default async function NewShiftPage() {
   const allRows = await listShiftRecords();
@@ -9,6 +10,11 @@ export default async function NewShiftPage() {
   const roleOptions = Array.from(
     new Set(allRows.map((row) => row.role).filter(Boolean)),
   ) as string[];
+  const showSalesField = isDatabaseConfigured()
+    ? await getUserSettings()
+        .then((s) => s.trackSales)
+        .catch(() => false)
+    : false;
 
   return (
     <div className="space-y-6">
@@ -30,6 +36,7 @@ export default async function NewShiftPage() {
         persistenceEnabled={isDatabaseConfigured()}
         locationOptions={locationOptions}
         roleOptions={roleOptions}
+        showSalesField={showSalesField}
       />
     </div>
   );

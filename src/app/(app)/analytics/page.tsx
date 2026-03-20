@@ -190,6 +190,41 @@ export default async function AnalyticsPage({
         />
       </section>
 
+      <section className="rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Averages
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Per shift</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.averages.perShift.earned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.averages.perShift.hours.toFixed(2)} hrs avg
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Per week</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.averages.perWeek.earned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.averages.perWeek.hours.toFixed(2)} hrs avg
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Per month</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.averages.perMonth.earned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.averages.perMonth.hours.toFixed(2)} hrs avg
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2">
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/85 px-4 py-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">

@@ -5,11 +5,13 @@ export function SummaryCard({
   value,
   tone = "light",
   kind = "currency",
+  delta,
 }: {
   label: string;
   value: number;
   tone?: "light" | "dark";
   kind?: "currency" | "decimal" | "number";
+  delta?: { prev: number; label?: string };
 }) {
   const formatted =
     kind === "currency"
@@ -17,6 +19,11 @@ export function SummaryCard({
       : kind === "decimal"
         ? formatDecimal(value)
         : String(value);
+
+  const deltaAmount = delta ? value - delta.prev : null;
+  const deltaPct =
+    delta && delta.prev > 0 ? ((value - delta.prev) / delta.prev) * 100 : null;
+  const isUp = deltaAmount !== null && deltaAmount >= 0;
 
   return (
     <div
@@ -32,6 +39,25 @@ export function SummaryCard({
         {label}
       </p>
       <p className="mt-3 text-3xl font-semibold tracking-tight">{formatted}</p>
+      {delta && deltaAmount !== null && delta.prev > 0 ? (
+        <p
+          className={`mt-2 text-xs font-medium ${
+            isUp ? "text-emerald-500" : "text-rose-500"
+          }`}
+        >
+          {isUp ? "▲" : "▼"} {formatCurrency(Math.abs(deltaAmount))}
+          {deltaPct !== null
+            ? ` (${isUp ? "+" : ""}${deltaPct.toFixed(0)}%)`
+            : ""}
+          {delta.label ? (
+            <span className="ml-1 font-normal text-slate-400">
+              {delta.label}
+            </span>
+          ) : null}
+        </p>
+      ) : delta && delta.prev === 0 ? (
+        <p className="mt-2 text-xs text-slate-400">No prior period data</p>
+      ) : null}
     </div>
   );
 }

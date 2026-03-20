@@ -34,7 +34,8 @@ model Shift {
   cardTips    Decimal        @default(0) @db.Decimal(10, 2)
   basePay     Decimal        @default(0) @db.Decimal(10, 2)
   otherIncome Decimal        @default(0) @db.Decimal(10, 2)
-  totalEarned Decimal        @db.Decimal(10, 2)
+  totalEarned  Decimal        @db.Decimal(10, 2)
+  salesAmount  Decimal?       @db.Decimal(10, 2)
   location    String?
   role        String?
   notes       String?
@@ -54,6 +55,7 @@ model UserSettings {
   timezone        String   @default("America/Chicago")
   trackBasePay    Boolean  @default(true)
   splitTipsByType Boolean  @default(true)
+  trackSales      Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)

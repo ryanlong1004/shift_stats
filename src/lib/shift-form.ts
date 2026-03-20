@@ -17,6 +17,7 @@ export type ShiftFormValues = {
   cardTips: string;
   basePay: string;
   otherIncome: string;
+  salesAmount: string;
   location: string;
   role: string;
   notes: string;
@@ -52,6 +53,7 @@ export const shiftFormSchema = z
     cardTips: optionalMoneyField,
     basePay: optionalMoneyField,
     otherIncome: optionalMoneyField,
+    salesAmount: optionalMoneyField,
     location: z.string().max(100, "Location must be 100 characters or fewer."),
     role: z.string().max(100, "Role must be 100 characters or fewer."),
     notes: z.string().max(1000, "Notes must be 1000 characters or fewer."),
@@ -207,6 +209,7 @@ export function getDefaultShiftFormValues(): ShiftFormValues {
     cardTips: "0.00",
     basePay: "0.00",
     otherIncome: "0.00",
+    salesAmount: "",
     location: "",
     role: "",
     notes: "",
@@ -226,6 +229,7 @@ export function getShiftFormValuesFromShiftRecord(
     cardTips: row.cardTips.toFixed(2),
     basePay: row.basePay.toFixed(2),
     otherIncome: row.otherIncome.toFixed(2),
+    salesAmount: row.salesAmount !== null ? row.salesAmount.toFixed(2) : "",
     location: row.location ?? "",
     role: row.role ?? "",
     notes: row.notes ?? "",

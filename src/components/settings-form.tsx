@@ -38,6 +38,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     timezone: initialSettings.timezone,
     trackBasePay: initialSettings.trackBasePay,
     splitTipsByType: initialSettings.splitTipsByType,
+    trackSales: initialSettings.trackSales,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -183,6 +184,20 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
           />
           <span className="text-sm font-medium text-slate-700">
             Split cash and card tips
+          </span>
+        </label>
+
+        <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 cursor-pointer hover:bg-slate-50 transition">
+          <input
+            type="checkbox"
+            checked={values.trackSales}
+            onChange={(event) =>
+              updateValue("trackSales", event.target.checked)
+            }
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          <span className="text-sm font-medium text-slate-700">
+            Track sales &amp; tip percentage
           </span>
         </label>
       </div>

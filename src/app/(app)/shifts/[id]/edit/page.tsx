@@ -8,6 +8,7 @@ import {
   isDatabaseConfigured,
   listShiftRecords,
 } from "@/lib/shift-repository";
+import { getUserSettings } from "@/lib/settings-repository";
 
 type EditShiftPageProps = {
   params: Promise<{ id: string }>;
@@ -25,6 +26,11 @@ export default async function EditShiftPage({
     getShiftRecordById(decodeURIComponent(id)),
     listShiftRecords(),
   ]);
+  const showSalesField = isDatabaseConfigured()
+    ? await getUserSettings()
+        .then((s) => s.trackSales)
+        .catch(() => false)
+    : false;
   const locationOptions = Array.from(
     new Set(allRows.map((entry) => entry.location).filter(Boolean)),
   ) as string[];
@@ -58,6 +64,7 @@ export default async function EditShiftPage({
         returnTo={returnTo}
         locationOptions={locationOptions}
         roleOptions={roleOptions}
+        showSalesField={showSalesField}
       />
     </div>
   );

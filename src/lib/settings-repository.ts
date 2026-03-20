@@ -8,6 +8,7 @@ export const userSettingsSchema = z.object({
   timezone: z.string().min(1, "Timezone is required."),
   trackBasePay: z.boolean(),
   splitTipsByType: z.boolean(),
+  trackSales: z.boolean(),
 });
 
 export type UserSettingsFormValues = z.infer<typeof userSettingsSchema>;
@@ -18,6 +19,7 @@ export type UserSettings = {
   timezone: string;
   trackBasePay: boolean;
   splitTipsByType: boolean;
+  trackSales: boolean;
 };
 
 async function getCurrentUserContext() {
@@ -58,6 +60,7 @@ export async function getUserSettings(): Promise<UserSettings> {
     timezone: settings.timezone,
     trackBasePay: settings.trackBasePay,
     splitTipsByType: settings.splitTipsByType,
+    trackSales: settings.trackSales,
   };
 }
 

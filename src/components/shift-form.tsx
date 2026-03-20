@@ -21,6 +21,7 @@ type ShiftFormProps = {
   returnTo?: string;
   locationOptions?: string[];
   roleOptions?: string[];
+  showSalesField?: boolean;
 };
 
 type FormErrors = Partial<Record<keyof ShiftFormValues, string>>;
@@ -33,6 +34,7 @@ export function ShiftForm({
   returnTo,
   locationOptions = [],
   roleOptions = [],
+  showSalesField = false,
 }: ShiftFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<ShiftFormValues>(
@@ -280,6 +282,20 @@ export function ShiftForm({
           </Field>
         </div>
 
+        {showSalesField ? (
+          <Field
+            label="Sales (optional)"
+            hint="Used to compute your tip percentage"
+            error={errors.salesAmount}
+          >
+            <MoneyInput
+              value={values.salesAmount}
+              onChange={(nextValue) => updateValue("salesAmount", nextValue)}
+              error={errors.salesAmount}
+            />
+          </Field>
+        ) : null}
+
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Location" error={errors.location}>
             <input
@@ -397,6 +413,15 @@ export function ShiftForm({
               label="Hourly rate"
               value={formatCurrency(preview.hourlyRate)}
             />
+            {showSalesField &&
+            values.salesAmount.trim() &&
+            Number(values.salesAmount) > 0 ? (
+              <PreviewCard
+                icon={<ReceiptText className="h-4 w-4" />}
+                label="Tip %"
+                value={`${((preview.totalTips / Number(values.salesAmount)) * 100).toFixed(1)}%`}
+              />
+            ) : null}
           </div>
         </div>
 

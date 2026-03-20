@@ -203,6 +203,7 @@ function mapDatabaseShift(shift: {
   basePay: { toString(): string };
   otherIncome: { toString(): string };
   totalEarned: { toString(): string };
+  salesAmount: { toString(): string } | null;
   location: string | null;
   role: string | null;
   notes: string | null;
@@ -213,6 +214,9 @@ function mapDatabaseShift(shift: {
   const cardTips = decimalToNumber(shift.cardTips);
   const basePay = decimalToNumber(shift.basePay);
   const otherIncome = decimalToNumber(shift.otherIncome);
+  const salesAmount = shift.salesAmount
+    ? decimalToNumber(shift.salesAmount)
+    : null;
   const totalEarned = Number(
     (basePay * hoursWorked + cashTips + cardTips + otherIncome).toFixed(2),
   );
@@ -232,6 +236,7 @@ function mapDatabaseShift(shift: {
     cardTips,
     basePay,
     otherIncome,
+    salesAmount,
     location: shift.location,
     role: shift.role,
     notes: shift.notes,
@@ -259,6 +264,7 @@ function buildPersistenceData(values: ShiftFormValues) {
     basePay: (validated.basePay.trim() || "0").toString(),
     otherIncome: (validated.otherIncome.trim() || "0").toString(),
     totalEarned: preview.totalEarned.toFixed(2),
+    salesAmount: validated.salesAmount.trim() || null,
     location: validated.location.trim() || null,
     role: validated.role.trim() || null,
     notes: validated.notes.trim() || null,

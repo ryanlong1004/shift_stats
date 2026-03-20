@@ -112,6 +112,7 @@ export function parseShiftImportCsv(csvText: string): ParsedImportResult {
       cardTips: normalizeMoney(getValue("Card Tips")),
       basePay: normalizeMoney(getValue("Base Pay")),
       otherIncome: normalizeMoney(getValue("Other Income")),
+      salesAmount: "",
       location: getValue("Location"),
       role: getValue("Role"),
       notes: getValue("Notes"),

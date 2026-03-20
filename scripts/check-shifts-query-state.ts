@@ -147,6 +147,7 @@ function runChecks() {
       cardTips: 0,
       basePay: 0,
       otherIncome: 300,
+      salesAmount: null,
       location: null,
       role: null,
       notes: null,

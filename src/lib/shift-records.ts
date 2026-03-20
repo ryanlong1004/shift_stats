@@ -6,6 +6,9 @@ import {
   parseISO,
   startOfMonth,
   startOfWeek,
+  subDays,
+  subMonths,
+  subWeeks,
 } from "date-fns";
 
 export type ShiftRecord = {
@@ -22,6 +25,7 @@ export type ShiftRecord = {
   cardTips: number;
   basePay: number;
   otherIncome: number;
+  salesAmount: number | null;
   location: string | null;
   role: string | null;
   notes: string | null;
@@ -41,6 +45,8 @@ export type ShiftSnapshot = {
 export type DashboardSnapshot = ShiftSnapshot & {
   weekTotalEarned: number;
   monthTotalEarned: number;
+  prevWeekTotalEarned: number;
+  prevMonthTotalEarned: number;
   recentShifts: ShiftRecord[];
   earningsSeries: Array<{
     label: string;
@@ -51,6 +57,11 @@ export type DashboardSnapshot = ShiftSnapshot & {
   weekdaySeries: Array<{ label: string; hourlyRate: number }>;
   insights: string[];
   bestWeekdayRate: number;
+  averages: {
+    perShift: { earned: number; hours: number };
+    perWeek: { earned: number; hours: number };
+    perMonth: { earned: number; hours: number };
+  };
 };
 
 function round(value: number) {
@@ -131,6 +142,8 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
       ...base,
       weekTotalEarned: 0,
       monthTotalEarned: 0,
+      prevWeekTotalEarned: 0,
+      prevMonthTotalEarned: 0,
       recentShifts: [],
       earningsSeries: [],
       weekdaySeries: [],
@@ -140,6 +153,11 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
         "Once data exists, this page will calculate hourly trends and best weekdays.",
       ],
       bestWeekdayRate: 0,
+      averages: {
+        perShift: { earned: 0, hours: 0 },
+        perWeek: { earned: 0, hours: 0 },
+        perMonth: { earned: 0, hours: 0 },
+      },
     };
   }
 
@@ -172,6 +190,59 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
   const monthTotalEarned = round(
     monthRows.reduce((sum, row) => sum + row.totalEarned, 0),
   );
+
+  // Previous week
+  const prevWeekStart = startOfWeek(subWeeks(weekStart, 1), {
+    weekStartsOn: 1,
+  });
+  const prevWeekEnd = subDays(weekStart, 1);
+  const prevWeekRows = sortedRows.filter((row) =>
+    isWithinInterval(parseISO(row.shiftDate), {
+      start: prevWeekStart,
+      end: prevWeekEnd,
+    }),
+  );
+  const prevWeekTotalEarned = round(
+    prevWeekRows.reduce((sum, row) => sum + row.totalEarned, 0),
+  );
+
+  // Previous month
+  const prevMonthRef = subMonths(referenceDate, 1);
+  const prevMonthRows = sortedRows.filter((row) =>
+    isSameMonth(parseISO(row.shiftDate), prevMonthRef),
+  );
+  const prevMonthTotalEarned = round(
+    prevMonthRows.reduce((sum, row) => sum + row.totalEarned, 0),
+  );
+
+  // Averages across shifts, weeks, and months
+  const distinctWeeks = new Set(
+    sortedRows.map((row) =>
+      format(
+        startOfWeek(parseISO(row.shiftDate), { weekStartsOn: 1 }),
+        "yyyy-MM-dd",
+      ),
+    ),
+  );
+  const numWeeks = Math.max(distinctWeeks.size, 1);
+  const distinctMonths = new Set(
+    sortedRows.map((row) => format(parseISO(row.shiftDate), "yyyy-MM")),
+  );
+  const numMonths = Math.max(distinctMonths.size, 1);
+  const averages = {
+    perShift: {
+      earned: round(base.totalEarned / base.totalShifts),
+      hours: round(base.totalHours / base.totalShifts),
+    },
+    perWeek: {
+      earned: round(base.totalEarned / numWeeks),
+      hours: round(base.totalHours / numWeeks),
+    },
+    perMonth: {
+      earned: round(base.totalEarned / numMonths),
+      hours: round(base.totalHours / numMonths),
+    },
+  };
 
   const weekdayMap = new Map<string, { earned: number; hours: number }>();
 
@@ -215,6 +286,8 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
     ...base,
     weekTotalEarned,
     monthTotalEarned,
+    prevWeekTotalEarned,
+    prevMonthTotalEarned,
     recentShifts: sortedRows.slice(0, 5),
     earningsSeries: [...sortedRows].reverse().map((row) => ({
       label: format(parseISO(row.shiftDate), "MMM d"),
@@ -225,5 +298,6 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
     weekdaySeries,
     insights,
     bestWeekdayRate: round(bestWeekdayEntry?.rate ?? 0),
+    averages,
   };
 }

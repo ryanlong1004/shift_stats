@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { LazyEarningsTrendChart } from "@/components/charts/lazy-earnings-trend-chart";
 import { SummaryCard } from "@/components/summary-card";
 import { ShiftHistoryTable } from "@/components/shift-history-table";
@@ -13,6 +15,12 @@ type DashboardPageSearchParams = {
   location?: string;
   role?: string;
 };
+
+const periodChips = [
+  { value: "all", label: "All time" },
+  { value: "week", label: "This week" },
+  { value: "month", label: "This month" },
+] as const;
 
 export default async function DashboardPage({
   searchParams,
@@ -49,16 +57,36 @@ export default async function DashboardPage({
           Track your recent performance with weekly and monthly totals, hourly
           trends, and key shift highlights.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {periodChips.map((chip) => (
+            <Link
+              key={chip.value}
+              href={`/dashboard?preset=${chip.value}`}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                preset === chip.value
+                  ? "bg-slate-950 text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {chip.label}
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <SummaryCard
           label="Total earned this week"
           value={snapshot.weekTotalEarned}
+          delta={{ prev: snapshot.prevWeekTotalEarned, label: "vs last week" }}
         />
         <SummaryCard
           label="Total earned this month"
           value={snapshot.monthTotalEarned}
+          delta={{
+            prev: snapshot.prevMonthTotalEarned,
+            label: "vs last month",
+          }}
         />
         <SummaryCard
           label="Average hourly rate"
