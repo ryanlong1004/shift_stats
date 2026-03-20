@@ -6,6 +6,7 @@ import { SummaryCard } from "@/components/summary-card";
 import { formatCurrency } from "@/lib/formatters";
 import {
   getDashboardSnapshot,
+  getDistinctLocationsAndRoles,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
 
@@ -44,7 +45,10 @@ export default async function AnalyticsPage({
     role: resolvedSearchParams.role,
   };
 
-  const snapshot = await getDashboardSnapshot(filters);
+  const [snapshot, { locations, roles }] = await Promise.all([
+    getDashboardSnapshot(filters),
+    getDistinctLocationsAndRoles(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -102,24 +106,34 @@ export default async function AnalyticsPage({
 
         <label className="space-y-2 text-sm text-slate-700">
           <span className="font-medium">Location</span>
-          <input
-            type="text"
+          <select
             name="location"
-            placeholder="Filter location"
             defaultValue={resolvedSearchParams.location ?? ""}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-slate-900"
-          />
+          >
+            <option value="">All locations</option>
+            {locations.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="space-y-2 text-sm text-slate-700">
           <span className="font-medium">Role</span>
-          <input
-            type="text"
+          <select
             name="role"
-            placeholder="Filter role"
             defaultValue={resolvedSearchParams.role ?? ""}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-slate-900"
-          />
+          >
+            <option value="">All roles</option>
+            {roles.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="md:col-span-2 xl:col-span-5 flex items-center gap-3">

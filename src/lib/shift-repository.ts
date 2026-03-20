@@ -493,3 +493,35 @@ export async function deleteShift(id: string) {
     ok: true as const,
   };
 }
+
+export async function getDistinctLocationsAndRoles(): Promise<{
+  locations: string[];
+  roles: string[];
+}> {
+  if (!isDatabaseConfigured()) {
+    return { locations: [], roles: [] };
+  }
+
+  const prisma = getPrismaClient();
+  const { userId } = await getCurrentUserContext();
+
+  const [locationRows, roleRows] = await Promise.all([
+    prisma.shift.findMany({
+      where: { userId: userId ?? undefined, location: { not: null } },
+      select: { location: true },
+      distinct: ["location"],
+      orderBy: { location: "asc" },
+    }),
+    prisma.shift.findMany({
+      where: { userId: userId ?? undefined, role: { not: null } },
+      select: { role: true },
+      distinct: ["role"],
+      orderBy: { role: "asc" },
+    }),
+  ]);
+
+  return {
+    locations: locationRows.map((r) => r.location as string),
+    roles: roleRows.map((r) => r.role as string),
+  };
+}
