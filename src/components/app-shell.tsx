@@ -29,6 +29,10 @@ export function AppShell({
 }) {
   const pathname = usePathname();
 
+  const activeHref = navItems
+    .filter((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,_#f7f0e7_0%,_#eff4f8_100%)] text-slate-900">
       <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[260px_1fr]">
@@ -51,8 +55,7 @@ export function AppShell({
           <nav className="mt-8 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive = activeHref === item.href;
 
               return (
                 <Link
@@ -100,8 +103,7 @@ export function AppShell({
           <nav className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-slate-900/10 bg-white/90 px-2 py-2 backdrop-blur lg:hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive = activeHref === item.href;
 
               return (
                 <Link

@@ -298,38 +298,56 @@ export function ShiftForm({
 
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Location" error={errors.location}>
-            <input
-              type="text"
-              list="location-options"
-              placeholder="Downtown"
-              value={values.location}
-              onChange={(event) => updateValue("location", event.target.value)}
-              className={inputClassName(errors.location)}
-            />
             {locationOptions.length > 0 ? (
-              <datalist id="location-options">
+              <select
+                value={values.location}
+                onChange={(event) =>
+                  updateValue("location", event.target.value)
+                }
+                className={inputClassName(errors.location)}
+              >
+                <option value="">Select a location…</option>
                 {locationOptions.map((option) => (
-                  <option key={option} value={option} />
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
                 ))}
-              </datalist>
-            ) : null}
+              </select>
+            ) : (
+              <input
+                type="text"
+                placeholder="Downtown"
+                value={values.location}
+                onChange={(event) =>
+                  updateValue("location", event.target.value)
+                }
+                className={inputClassName(errors.location)}
+              />
+            )}
           </Field>
           <Field label="Role" error={errors.role}>
-            <input
-              type="text"
-              list="role-options"
-              placeholder="Server"
-              value={values.role}
-              onChange={(event) => updateValue("role", event.target.value)}
-              className={inputClassName(errors.role)}
-            />
             {roleOptions.length > 0 ? (
-              <datalist id="role-options">
+              <select
+                value={values.role}
+                onChange={(event) => updateValue("role", event.target.value)}
+                className={inputClassName(errors.role)}
+              >
+                <option value="">Select a role…</option>
                 {roleOptions.map((option) => (
-                  <option key={option} value={option} />
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
                 ))}
-              </datalist>
-            ) : null}
+              </select>
+            ) : (
+              <input
+                type="text"
+                placeholder="Server"
+                value={values.role}
+                onChange={(event) => updateValue("role", event.target.value)}
+                className={inputClassName(errors.role)}
+              />
+            )}
           </Field>
         </div>
 
