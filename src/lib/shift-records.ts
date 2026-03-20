@@ -42,7 +42,12 @@ export type DashboardSnapshot = ShiftSnapshot & {
   weekTotalEarned: number;
   monthTotalEarned: number;
   recentShifts: ShiftRecord[];
-  earningsSeries: Array<{ label: string; earned: number; hourlyRate: number }>;
+  earningsSeries: Array<{
+    label: string;
+    weekday: string;
+    earned: number;
+    hourlyRate: number;
+  }>;
   weekdaySeries: Array<{ label: string; hourlyRate: number }>;
   insights: string[];
   bestWeekdayRate: number;
@@ -213,6 +218,7 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
     recentShifts: sortedRows.slice(0, 5),
     earningsSeries: [...sortedRows].reverse().map((row) => ({
       label: format(parseISO(row.shiftDate), "MMM d"),
+      weekday: getWeekdayFromShiftDate(row.shiftDate),
       earned: row.totalEarned,
       hourlyRate: row.hourlyRate,
     })),

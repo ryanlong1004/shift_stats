@@ -14,6 +14,7 @@ import { formatCurrency } from "@/lib/formatters";
 
 type EarningsPoint = {
   label: string;
+  weekday: string;
   earned: number;
   hourlyRate: number;
 };
@@ -36,6 +37,7 @@ function CustomEarningsTooltip({
     return (
       <div className="rounded bg-slate-950 px-3 py-2 text-sm text-white shadow-lg">
         <p className="font-medium">{payload[0].payload.label}</p>
+        <p className="text-slate-400">{payload[0].payload.weekday}</p>
         {payload.map((entry: EarningsTooltipEntry, index: number) => (
           <p key={index} className="text-slate-300">
             {entry.dataKey === "earned" ? "Earnings" : "Hourly Rate"}:{" "}

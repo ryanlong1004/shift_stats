@@ -16,7 +16,12 @@ const EarningsTrendChart = dynamic(
 export function LazyEarningsTrendChart({
   data,
 }: {
-  data: Array<{ label: string; earned: number; hourlyRate: number }>;
+  data: Array<{
+    label: string;
+    weekday: string;
+    earned: number;
+    hourlyRate: number;
+  }>;
 }) {
   return <EarningsTrendChart data={data} />;
 }
