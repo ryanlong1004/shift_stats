@@ -371,7 +371,10 @@ export function ShiftForm({
             Calculated shift totals
           </h2>
           <p className="mt-2 text-sm text-slate-300">
-            Day of week: <span className="font-medium text-white">{previewDayLabel ?? "Pick a shift date"}</span>
+            Day of week:{" "}
+            <span className="font-medium text-white">
+              {previewDayLabel ?? "Pick a shift date"}
+            </span>
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <PreviewCard

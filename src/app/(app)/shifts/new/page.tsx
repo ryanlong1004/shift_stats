@@ -1,8 +1,5 @@
 import { ShiftForm } from "@/components/shift-form";
-import {
-  isDatabaseConfigured,
-  listShiftRecords,
-} from "@/lib/shift-repository";
+import { isDatabaseConfigured, listShiftRecords } from "@/lib/shift-repository";
 
 export default async function NewShiftPage() {
   const allRows = await listShiftRecords();
