@@ -45,6 +45,82 @@ Next up (roadmap priority):
 - run `SMOKE_BASE_URL=https://shift-stats.com npm run check:smoke` against production domain
 - execute final manual smoke checks on `https://shift-stats.com` (desktop + mobile)
 
+## Competitive Feature Roadmap (vs ServerLife)
+
+Features identified from ServerLife app screenshot as gaps worth closing.
+Ordered by value delivered relative to implementation effort.
+
+### Phase 1 — High value, lower complexity
+
+#### Period comparison deltas
+Show current period vs previous period with $ and % change on dashboard and analytics.
+- Add a "vs previous period" query that fetches the same span shifted back one period
+- Display delta badges (e.g. `-$128.26 (-22.78%)`) next to earnings, hours, and hourly rate summary cards
+- Support all existing period filters (week, month, year) for the comparison
+- Color-code: green for improvement, red for decline
+
+#### Custom date range filter
+Add a "Custom" filter option to shift history, dashboard, and analytics.
+- Render a start date + end date picker that replaces the period quick-filter when selected
+- Persist custom range in URL query params (`from` / `to`) the same way existing filters work
+- Maintain existing `?period=` param for the named presets; use `?from=&to=` for custom
+
+#### Sales amount + tip percentage tracking
+Add an optional `salesAmount` field to each shift to derive tip percentage.
+- Schema: add `salesAmount decimal(10,2)` nullable column to `shifts` table, default `null`
+- Form: optional "Sales ($)" input below the tip fields, hidden unless user enables it in Settings
+- Display derived `tipPct = totalTips / salesAmount * 100` on shift detail, history rows, and analytics
+- Settings toggle: "Track sales / tip percentage"
+- Analytics: add a "Tip %" series to the earnings trend chart when sales data is present
+
+#### Averages panel on analytics
+Formalize a dedicated averages view alongside the existing totals.
+- Show daily, weekly, and monthly averages for: earnings, hours worked, hourly rate, tip %
+- Add a toggle (Daily / Weekly / Monthly) to switch the averaging window
+- Reuse existing `earningsSeries` data — compute averages client-side from the series
+
+### Phase 2 — Medium complexity
+
+#### Goals with progress tracking
+Let users set earnings and hours targets and track progress against them.
+- Schema: add `goals` table with `userId`, `period` (daily/weekly/monthly/yearly), `metricType` (takeHome/hours/avgHourly), `targetValue decimal(10,2)`, `createdAt`, `updatedAt`
+- UI: Goals page (or Settings section) to create and edit goal targets
+- Analytics: donut-chart progress widgets for each active goal showing "So far / Remaining"
+- Dashboard: surface incomplete goals for the current week/month as quick-glance cards
+- Library: use existing Recharts `PieChart` / `Cell` for donut charts (no new charting dep)
+
+#### Pay period filter
+Support a configurable pay period (e.g. weekly Thu–Wed, biweekly) as a first-class filter.
+- Settings: let user set pay period type (weekly / biweekly) and start day/anchor date
+- Filter toolbar: add "Pay Period" alongside existing Week / Month / Year chips
+- Analytics and dashboard respect the pay period boundary when selected
+- URL param: `?period=pay`
+
+#### Period-over-period overlay chart
+Overlay current and previous period as two series on the earnings trend chart.
+- Add a "Compare" toggle to the analytics earnings chart
+- When enabled, fetch previous period series alongside current and render as a dashed line
+- Tooltip shows both current and previous period values for the hovered date
+- Reuse existing Recharts `ComposedChart` — add a second `Line` series with a distinct color
+
+### Phase 3 — Higher complexity
+
+#### Calendar view
+Monthly calendar showing each day's total earnings with a visual intensity bar.
+- New route: `/calendar`
+- Render a standard month grid; each day cell shows total earned and a bar scaled to the month's max
+- Clicking a day navigates to a filtered `/shifts?from=YYYY-MM-DD&to=YYYY-MM-DD` view
+- Navigation: prev/next month arrows; default to current month
+- Add "Calendar" to primary nav (desktop sidebar + mobile bottom nav)
+
+#### Schedule view
+Weekly agenda timeline listing upcoming and recent shifts with time, role, and location.
+- New route: `/schedule`
+- Display a 7-day window (current week by default) with each shift as a card: time range, role, location, earnings
+- Navigation: prev/next week arrows
+- "Add shift" shortcut from any empty day slot
+- Add "Schedule" to primary nav
+
 ## Project Identity
 
 - Product name: Shiftstats
