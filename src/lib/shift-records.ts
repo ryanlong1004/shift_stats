@@ -134,7 +134,10 @@ export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
   };
 }
 
-export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
+export function buildDashboardSnapshot(
+  rows: ShiftRecord[],
+  allRows?: ShiftRecord[],
+): DashboardSnapshot {
   const base = buildShiftSnapshot(rows);
 
   if (rows.length === 0) {
@@ -164,18 +167,25 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
   const sortedRows = [...rows].sort((left, right) =>
     right.shiftDate.localeCompare(left.shiftDate),
   );
+
+  // Period totals (week/month) are always computed from unfiltered allRows so
+  // they don't change when the user switches the period chip.
+  const periodRows = allRows
+    ? [...allRows].sort((l, r) => r.shiftDate.localeCompare(l.shiftDate))
+    : sortedRows;
+
   const referenceDate = parseISO(sortedRows[0].shiftDate);
   const weekStart = startOfWeek(referenceDate, { weekStartsOn: 1 });
   const monthStart = startOfMonth(referenceDate);
   const monthEnd = endOfMonth(referenceDate);
 
-  const weekRows = sortedRows.filter((row) =>
+  const weekRows = periodRows.filter((row) =>
     isWithinInterval(parseISO(row.shiftDate), {
       start: weekStart,
       end: referenceDate,
     }),
   );
-  const monthRows = sortedRows.filter(
+  const monthRows = periodRows.filter(
     (row) =>
       isSameMonth(parseISO(row.shiftDate), referenceDate) &&
       isWithinInterval(parseISO(row.shiftDate), {
@@ -196,7 +206,7 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
     weekStartsOn: 1,
   });
   const prevWeekEnd = subDays(weekStart, 1);
-  const prevWeekRows = sortedRows.filter((row) =>
+  const prevWeekRows = periodRows.filter((row) =>
     isWithinInterval(parseISO(row.shiftDate), {
       start: prevWeekStart,
       end: prevWeekEnd,
@@ -208,7 +218,7 @@ export function buildDashboardSnapshot(rows: ShiftRecord[]): DashboardSnapshot {
 
   // Previous month
   const prevMonthRef = subMonths(referenceDate, 1);
-  const prevMonthRows = sortedRows.filter((row) =>
+  const prevMonthRows = periodRows.filter((row) =>
     isSameMonth(parseISO(row.shiftDate), prevMonthRef),
   );
   const prevMonthTotalEarned = round(

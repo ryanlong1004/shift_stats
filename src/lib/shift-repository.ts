@@ -356,8 +356,11 @@ export async function getShiftRecordById(id: string) {
 export async function getDashboardSnapshot(
   filters?: ShiftListFilters,
 ): Promise<DashboardSnapshot> {
-  const rows = await listShiftRecords(filters);
-  return buildDashboardSnapshot(rows);
+  const [filteredRows, allRows] = await Promise.all([
+    listShiftRecords(filters),
+    listShiftRecords(),
+  ]);
+  return buildDashboardSnapshot(filteredRows, allRows);
 }
 
 export async function getShiftSnapshot(filters?: ShiftListFilters) {
