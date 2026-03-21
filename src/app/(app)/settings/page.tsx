@@ -1,8 +1,13 @@
+import { AccountForm } from "@/components/account-form";
 import { SettingsForm } from "@/components/settings-form";
 import { getUserSettings } from "@/lib/settings-repository";
+import { getAccountProfile } from "@/lib/account-repository";
 
 export default async function SettingsPage() {
-  const settings = await getUserSettings();
+  const [settings, profile] = await Promise.all([
+    getUserSettings(),
+    getAccountProfile(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -19,6 +24,7 @@ export default async function SettingsPage() {
         </p>
       </section>
 
+      <AccountForm initialProfile={profile} />
       <SettingsForm initialSettings={settings} />
     </div>
   );

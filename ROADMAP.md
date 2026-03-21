@@ -39,6 +39,7 @@ Completed now:
 - period-over-period compare overlay chart on analytics
 - monthly calendar view (`/calendar`) with day deep-link to filtered shifts
 - weekly schedule view (`/schedule`) with prev/next week navigation
+- database-backed signup flow (`/signup`) with hashed passwords and user profile name
 
 In progress now:
 
@@ -49,6 +50,8 @@ Next up (roadmap priority):
 - run `SMOKE_BASE_URL=https://shift-stats.com npm run check:smoke` against production domain
 - execute final manual smoke checks on `https://shift-stats.com` (desktop + mobile)
 - add regression checks for schedule/calendar edge cases (month boundaries, empty weeks)
+- add account management on `/settings` for profile name and password changes
+- add auth hardening follow-ups: reset flow, rate limiting, optional email verification
 
 ## Competitive Feature Roadmap (vs ServerLife)
 
