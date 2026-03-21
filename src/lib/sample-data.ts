@@ -34,6 +34,7 @@ async function readRows(): Promise<ShiftRecord[]> {
       basePay: 0,
       otherIncome: Number(totalEarned),
       salesAmount: null,
+      tipPct: null,
       location: null,
       role: null,
       notes: `Imported from starter sample (${dayName}, ${hourlyRate}/hr).`,
