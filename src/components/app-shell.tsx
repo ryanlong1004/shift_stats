@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  CalendarRange,
   ChartNoAxesCombined,
   LayoutDashboard,
   PlusCircle,
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/shifts/new", label: "Add Shift", icon: PlusCircle },
   { href: "/analytics", label: "Analytics", icon: ChartNoAxesCombined },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/schedule", label: "Schedule", icon: CalendarRange },
   { href: "/goals", label: "Goals", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -104,7 +106,7 @@ export function AppShell({
 
           <div className="flex-1 px-5 py-6 lg:px-8 lg:py-8">{children}</div>
 
-          <nav className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-slate-900/10 bg-white/90 px-2 py-2 backdrop-blur lg:hidden">
+          <nav className="sticky bottom-0 z-20 flex gap-1 overflow-x-auto border-t border-slate-900/10 bg-white/90 px-2 py-2 backdrop-blur lg:hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeHref === item.href;
@@ -113,7 +115,7 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium ${
+                  className={`flex min-w-16 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium ${
                     isActive ? "bg-slate-950 text-white" : "text-slate-600"
                   }`}
                 >
