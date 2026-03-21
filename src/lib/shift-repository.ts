@@ -467,6 +467,81 @@ export async function getPreviousPeriodSeries(
     }));
 }
 
+export type PreviousPeriodTotals = {
+  totalEarned: number;
+  totalHours: number;
+  weightedAverageHourlyRate: number;
+  label: string;
+};
+
+export async function getPreviousPeriodTotals(
+  filters?: ShiftListFilters,
+): Promise<PreviousPeriodTotals | null> {
+  const normalizedPreset = filters?.preset ?? "all";
+  if (normalizedPreset === "all" || normalizedPreset === "custom") {
+    return null;
+  }
+
+  const now = new Date();
+  let prevStartDate: string | null = null;
+  let prevEndDate: string | null = null;
+  let label = "vs previous period";
+
+  if (normalizedPreset === "week") {
+    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const prevStart = startOfWeek(
+      new Date(thisWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000),
+      { weekStartsOn: 1 },
+    );
+    const prevEnd = new Date(thisWeekStart.getTime() - 1);
+    prevStartDate = format(prevStart, "yyyy-MM-dd");
+    prevEndDate = format(prevEnd, "yyyy-MM-dd");
+    label = "vs last week";
+  } else if (normalizedPreset === "month") {
+    const prevMonthStart = startOfMonth(
+      new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    );
+    const prevMonthEnd = endOfMonth(prevMonthStart);
+    prevStartDate = format(prevMonthStart, "yyyy-MM-dd");
+    prevEndDate = format(prevMonthEnd, "yyyy-MM-dd");
+    label = "vs last month";
+  } else if (normalizedPreset === "pay") {
+    const currentRange = resolvePayPeriodRange(filters?.payPeriodSettings);
+    if (!currentRange.startDate) return null;
+    const currentStart = parseISO(currentRange.startDate);
+    const periodDays = filters?.payPeriodSettings?.type === "biweekly" ? 14 : 7;
+    const prevStart = new Date(
+      currentStart.getTime() - periodDays * 24 * 60 * 60 * 1000,
+    );
+    const prevEnd = new Date(currentStart.getTime() - 24 * 60 * 60 * 1000);
+    prevStartDate = format(prevStart, "yyyy-MM-dd");
+    prevEndDate = format(prevEnd, "yyyy-MM-dd");
+    label = "vs previous pay period";
+  }
+
+  if (!prevStartDate || !prevEndDate) return null;
+
+  const prevRows = await listShiftRecords({
+    preset: "custom",
+    startDate: prevStartDate,
+    endDate: prevEndDate,
+    location: filters?.location,
+    role: filters?.role,
+  });
+
+  const totalEarned = Number(
+    prevRows.reduce((sum, r) => sum + r.totalEarned, 0).toFixed(2),
+  );
+  const totalHours = Number(
+    prevRows.reduce((sum, r) => sum + r.hoursWorked, 0).toFixed(2),
+  );
+  const weightedAverageHourlyRate = Number(
+    (totalHours > 0 ? totalEarned / totalHours : 0).toFixed(2),
+  );
+
+  return { totalEarned, totalHours, weightedAverageHourlyRate, label };
+}
+
 export async function getShiftSnapshot(filters?: ShiftListFilters) {
   const rows = await listShiftRecords(filters);
   return buildShiftSnapshot(rows);

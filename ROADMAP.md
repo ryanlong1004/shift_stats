@@ -49,6 +49,8 @@ Completed now:
 - optional email verification for new signups (`AUTH_REQUIRE_EMAIL_VERIFICATION`)
 - email verification route validated via smoke flow with verification enabled
 - resend verification flow added (`/resend-verification`, `/api/email-verification/request`)
+- mobile polish on auth forms (responsive padding, left-aligned helper links on small screens)
+- period comparison deltas on dashboard and analytics (earnings, hours, hourly rate vs previous period)
 
 In progress now:
 

@@ -6,6 +6,7 @@ import { ShiftHistoryTable } from "@/components/shift-history-table";
 import { GoalProgressPanel } from "@/components/goal-progress-panel";
 import {
   getDashboardSnapshot,
+  getPreviousPeriodTotals,
   listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
@@ -56,10 +57,11 @@ export default async function DashboardPage({
         : undefined,
   };
 
-  const [snapshot, allRows, goals] = await Promise.all([
+  const [snapshot, allRows, goals, prevTotals] = await Promise.all([
     getDashboardSnapshot(filters),
     listShiftRecords(),
     listGoals(),
+    getPreviousPeriodTotals(filters),
   ]);
   const goalProgress = computeGoalProgress(goals, allRows);
 
@@ -110,6 +112,14 @@ export default async function DashboardPage({
         <SummaryCard
           label="Average hourly rate"
           value={snapshot.weightedAverageHourlyRate}
+          delta={
+            prevTotals
+              ? {
+                  prev: prevTotals.weightedAverageHourlyRate,
+                  label: prevTotals.label,
+                }
+              : undefined
+          }
         />
         <SummaryCard
           label="Best shift"
@@ -120,6 +130,11 @@ export default async function DashboardPage({
           label="Total hours worked"
           value={snapshot.totalHours}
           kind="decimal"
+          delta={
+            prevTotals
+              ? { prev: prevTotals.totalHours, label: prevTotals.label }
+              : undefined
+          }
         />
         <SummaryCard
           label="Number of shifts"

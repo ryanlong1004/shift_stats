@@ -8,10 +8,11 @@ import { formatCurrency } from "@/lib/formatters";
 import {
   getDashboardSnapshot,
   getDistinctLocationsAndRoles,
+  getPreviousPeriodSeries,
+  getPreviousPeriodTotals,
   listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
-import { getPreviousPeriodSeries } from "@/lib/shift-repository";
 import { listGoals } from "@/lib/goals-repository";
 import { computeGoalProgress } from "@/lib/goals-progress";
 import { getUserSettings } from "@/lib/settings-repository";
@@ -60,14 +61,21 @@ export default async function AnalyticsPage({
         : undefined,
   };
 
-  const [snapshot, { locations, roles }, allRows, goals, prevSeries] =
-    await Promise.all([
-      getDashboardSnapshot(filters),
-      getDistinctLocationsAndRoles(),
-      listShiftRecords(),
-      listGoals(),
-      getPreviousPeriodSeries(filters),
-    ]);
+  const [
+    snapshot,
+    { locations, roles },
+    allRows,
+    goals,
+    prevSeries,
+    prevTotals,
+  ] = await Promise.all([
+    getDashboardSnapshot(filters),
+    getDistinctLocationsAndRoles(),
+    listShiftRecords(),
+    listGoals(),
+    getPreviousPeriodSeries(filters),
+    getPreviousPeriodTotals(filters),
+  ]);
   const goalProgress = computeGoalProgress(goals, allRows);
 
   return (
@@ -208,19 +216,41 @@ export default async function AnalyticsPage({
         </div>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
-          label="Moving 7-shift average"
-          value={snapshot.averageShiftEarnings}
+          label="Total earned"
+          value={snapshot.totalEarned}
+          delta={
+            prevTotals
+              ? { prev: prevTotals.totalEarned, label: prevTotals.label }
+              : undefined
+          }
+        />
+        <SummaryCard
+          label="Total hours"
+          value={snapshot.totalHours}
+          kind="decimal"
+          delta={
+            prevTotals
+              ? { prev: prevTotals.totalHours, label: prevTotals.label }
+              : undefined
+          }
+        />
+        <SummaryCard
+          label="Avg hourly rate"
+          value={snapshot.weightedAverageHourlyRate}
+          delta={
+            prevTotals
+              ? {
+                  prev: prevTotals.weightedAverageHourlyRate,
+                  label: prevTotals.label,
+                }
+              : undefined
+          }
         />
         <SummaryCard
           label="Best weekday rate"
           value={snapshot.bestWeekdayRate}
-        />
-        <SummaryCard
-          label="Weekly hours"
-          value={snapshot.totalHours}
-          kind="decimal"
         />
       </section>
 
