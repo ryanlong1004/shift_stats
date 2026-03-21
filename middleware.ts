@@ -4,8 +4,13 @@ const protectedPrefixes = [
   "/dashboard",
   "/shifts",
   "/analytics",
+  "/calendar",
+  "/schedule",
+  "/goals",
   "/settings",
   "/api/shifts",
+  "/api/goals",
+  "/api/settings",
 ];
 
 const sessionCookieNames = [
@@ -23,7 +28,7 @@ export default function middleware(request: NextRequest) {
   const isProtectedRoute = protectedPrefixes.some((prefix) =>
     pathname.startsWith(prefix),
   );
-  const isLoginRoute = pathname === "/login";
+  const isAuthRoute = pathname === "/login" || pathname === "/signup";
 
   if (!isLoggedIn && isProtectedRoute) {
     const loginUrl = new URL("/login", request.nextUrl.origin);
@@ -32,7 +37,7 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoggedIn && isLoginRoute) {
+  if (isLoggedIn && isAuthRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
   }
 
@@ -44,8 +49,14 @@ export const config = {
     "/dashboard/:path*",
     "/shifts/:path*",
     "/analytics/:path*",
+    "/calendar/:path*",
+    "/schedule/:path*",
+    "/goals/:path*",
     "/settings/:path*",
     "/api/shifts/:path*",
+    "/api/goals/:path*",
+    "/api/settings/:path*",
     "/login",
+    "/signup",
   ],
 };

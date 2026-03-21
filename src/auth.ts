@@ -2,6 +2,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
+import { verifyPassword } from "@/lib/passwords";
+
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -71,9 +73,34 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         if (!parsed.success) {
           return null;
         }
+        const submittedEmail = parsed.data.email.toLowerCase();
+
+        if (hasDatabaseUrl()) {
+          const { getPrismaClient } = await import("@/lib/prisma");
+          const prisma = getPrismaClient();
+          const existingUser = await prisma.user.findUnique({
+            where: { email: submittedEmail },
+          });
+
+          if (existingUser?.passwordHash) {
+            const validPassword = verifyPassword(
+              parsed.data.password,
+              existingUser.passwordHash,
+            );
+
+            if (!validPassword) {
+              return null;
+            }
+
+            return {
+              id: existingUser.id,
+              email: existingUser.email,
+              name: existingUser.name ?? "Shiftstats User",
+            };
+          }
+        }
 
         const expected = getExpectedDemoCredentials();
-        const submittedEmail = parsed.data.email.toLowerCase();
 
         if (
           !expected.email ||

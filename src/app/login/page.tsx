@@ -29,8 +29,8 @@ export default async function LoginPage() {
             Sign in to access your shift history.
           </h1>
           <p className="max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
-            Your dashboard, shifts, analytics, and settings are available after
-            sign-in.
+            Your dashboard, shifts, analytics, calendar, schedule, and settings
+            are available after sign-in. New here? Create an account first.
           </p>
 
           {showDevelopmentHint ? (

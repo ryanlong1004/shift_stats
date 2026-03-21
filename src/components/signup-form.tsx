@@ -5,20 +5,13 @@ import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type LoginFormProps = {
-  defaultEmail?: string;
-  defaultPassword?: string;
-};
-
-export function LoginForm({
-  defaultEmail = "",
-  defaultPassword = "",
-}: LoginFormProps) {
+export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [email, setEmail] = useState(defaultEmail);
-  const [password, setPassword] = useState(defaultPassword);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -28,6 +21,28 @@ export function LoginForm({
     setError(null);
 
     startTransition(async () => {
+      const response = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, confirmPassword }),
+      });
+
+      const payload = (await response.json()) as {
+        message?: string;
+        fieldErrors?: Record<string, string[]>;
+      };
+
+      if (!response.ok) {
+        setError(
+          payload.message ??
+            payload.fieldErrors?.confirmPassword?.[0] ??
+            payload.fieldErrors?.email?.[0] ??
+            payload.fieldErrors?.password?.[0] ??
+            "Signup failed.",
+        );
+        return;
+      }
+
       const result = await signIn("credentials", {
         email,
         password,
@@ -36,9 +51,7 @@ export function LoginForm({
       });
 
       if (!result || result.error) {
-        setError(
-          "Sign-in failed. Check the configured credentials and try again.",
-        );
+        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
         return;
       }
 
@@ -74,6 +87,21 @@ export function LoginForm({
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950"
+          minLength={8}
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-700">
+          Confirm password
+        </label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+          className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950"
+          minLength={8}
           required
         />
       </div>
@@ -89,16 +117,16 @@ export function LoginForm({
         disabled={isPending}
         className="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isPending ? "Signing in..." : "Sign in"}
+        {isPending ? "Creating account..." : "Create account"}
       </button>
 
       <p className="text-sm text-slate-600">
-        Need an account?{" "}
+        Already have an account?{" "}
         <Link
-          href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="font-medium text-slate-950 underline-offset-4 hover:underline"
         >
-          Sign up
+          Sign in
         </Link>
       </p>
     </form>
