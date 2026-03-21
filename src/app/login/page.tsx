@@ -12,10 +12,10 @@ export default async function LoginPage() {
 
   const developmentEmail =
     process.env.AUTH_DEMO_EMAIL ??
-    (process.env.NODE_ENV === "production" ? "" : "demo@shiftstats.local");
+    (process.env.NODE_ENV === "production" ? "" : "demo@shift-stats.com");
   const developmentPassword =
     process.env.AUTH_DEMO_PASSWORD ??
-    (process.env.NODE_ENV === "production" ? "" : "shiftstats-demo");
+    (process.env.NODE_ENV === "production" ? "" : "demo");
   const showDevelopmentHint = process.env.NODE_ENV !== "production";
 
   return (
