@@ -1,8 +1,8 @@
 # Shiftstats Implementation Spec
 
-Last updated: 2026-03-19
+Last updated: 2026-03-20
 
-## Status Snapshot (2026-03-19)
+## Status Snapshot (2026-03-20)
 
 Completed now:
 
@@ -34,16 +34,21 @@ Completed now:
 - analytics mobile readability improvements shipped (compact axis labels, clearer filter summaries, quick takeaways)
 - weekday analytics hardened to derive from `shiftDate` with regression checks for stale `dayName` mismatches
 - production domain secured: `shift-stats.com`
+- goals page + goals API with progress donuts on dashboard/analytics
+- pay period settings + pay period filter support on dashboard/analytics
+- period-over-period compare overlay chart on analytics
+- monthly calendar view (`/calendar`) with day deep-link to filtered shifts
+- weekly schedule view (`/schedule`) with prev/next week navigation
 
 In progress now:
 
-- mobile-first UX refinements and flow hardening
+- release hardening and production smoke validation of newly shipped phase features
 
 Next up (roadmap priority):
 
-- configure domain DNS and hosting bindings for `shift-stats.com` + `www.shift-stats.com`
 - run `SMOKE_BASE_URL=https://shift-stats.com npm run check:smoke` against production domain
 - execute final manual smoke checks on `https://shift-stats.com` (desktop + mobile)
+- add regression checks for schedule/calendar edge cases (month boundaries, empty weeks)
 
 ## Competitive Feature Roadmap (vs ServerLife)
 

@@ -176,6 +176,55 @@ function runChecks() {
   assert.equal(parsedImport.rows[0]?.location, "Camelot");
   assert.equal(parsedImport.rows[3]?.otherIncome, "255.00");
 
+  const appShellPath = path.join(process.cwd(), "src/components/app-shell.tsx");
+  const appShellSource = readFileSync(appShellPath, "utf8");
+  assert.ok(
+    appShellSource.includes('{ href: "/calendar", label: "Calendar"'),
+    "Primary nav must include Calendar route",
+  );
+  assert.ok(
+    appShellSource.includes('{ href: "/schedule", label: "Schedule"'),
+    "Primary nav must include Schedule route",
+  );
+
+  const calendarPagePath = path.join(
+    process.cwd(),
+    "src/app/(app)/calendar/page.tsx",
+  );
+  const calendarPageSource = readFileSync(calendarPagePath, "utf8");
+  assert.ok(
+    calendarPageSource.includes("/calendar?month=${prevMonth}"),
+    "Calendar page should expose previous month navigation",
+  );
+  assert.ok(
+    calendarPageSource.includes("/calendar?month=${nextMonth}"),
+    "Calendar page should expose next month navigation",
+  );
+  assert.ok(
+    calendarPageSource.includes(
+      "/shifts?preset=custom&startDate=${dateKey}&endDate=${dateKey}",
+    ),
+    "Calendar day click should deep-link to single-day custom filter",
+  );
+
+  const schedulePagePath = path.join(
+    process.cwd(),
+    "src/app/(app)/schedule/page.tsx",
+  );
+  const schedulePageSource = readFileSync(schedulePagePath, "utf8");
+  assert.ok(
+    schedulePageSource.includes("/schedule?week=${prevWeek}"),
+    "Schedule page should expose previous week navigation",
+  );
+  assert.ok(
+    schedulePageSource.includes("/schedule?week=${nextWeek}"),
+    "Schedule page should expose next week navigation",
+  );
+  assert.ok(
+    schedulePageSource.includes('href="/shifts/new"'),
+    "Schedule page should include add-shift shortcut on empty days",
+  );
+
   console.log("Shifts query-state regression checks passed.");
 }
 
