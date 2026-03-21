@@ -5,7 +5,6 @@ import {
   format,
   isValid,
   parse,
-  parseISO,
   startOfWeek,
   subWeeks,
   addWeeks,
@@ -64,7 +63,9 @@ export default async function SchedulePage({
     );
   }
 
-  const days = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  const days = Array.from({ length: 7 }, (_, index) =>
+    addDays(weekStart, index),
+  );
   const prevWeek = format(subWeeks(weekStart, 1), "yyyy-MM-dd");
   const nextWeek = format(addWeeks(weekStart, 1), "yyyy-MM-dd");
 
@@ -105,7 +106,10 @@ export default async function SchedulePage({
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
           const dayRows = rowsByDate.get(dateKey) ?? [];
-          const dayTotal = dayRows.reduce((sum, row) => sum + row.totalEarned, 0);
+          const dayTotal = dayRows.reduce(
+            (sum, row) => sum + row.totalEarned,
+            0,
+          );
 
           return (
             <article
@@ -151,7 +155,9 @@ export default async function SchedulePage({
                               : `${row.hoursWorked.toFixed(2)} hrs`}
                           </p>
                           <p className="mt-0.5 text-xs text-slate-600">
-                            {(row.role ?? "No role") + " • " + (row.location ?? "No location")}
+                            {(row.role ?? "No role") +
+                              " • " +
+                              (row.location ?? "No location")}
                           </p>
                         </div>
                         <div className="text-right">

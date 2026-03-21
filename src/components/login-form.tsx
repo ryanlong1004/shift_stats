@@ -35,7 +35,14 @@ export function LoginForm({
         callbackUrl,
       });
 
-      if (!result || result.error) {
+      if (!result || result.status === 429) {
+        setError(
+          "Too many sign-in attempts. Wait a few minutes and try again.",
+        );
+        return;
+      }
+
+      if (result.error) {
         setError(
           "Sign-in failed. Check the configured credentials and try again.",
         );
@@ -50,7 +57,7 @@ export function LoginForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-[1.75rem] border border-slate-900/10 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+      className="space-y-5 rounded-[1.75rem] border border-slate-900/10 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6"
     >
       <div>
         <label className="block text-sm font-medium text-slate-700">
@@ -92,15 +99,35 @@ export function LoginForm({
         {isPending ? "Signing in..." : "Sign in"}
       </button>
 
-      <p className="text-sm text-slate-600">
-        Need an account?{" "}
-        <Link
-          href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-          className="font-medium text-slate-950 underline-offset-4 hover:underline"
-        >
-          Sign up
-        </Link>
-      </p>
+      <div className="space-y-2 text-sm text-slate-600">
+        <p className="text-left sm:text-right">
+          <Link
+            href="/forgot-password"
+            className="font-medium text-slate-950 underline-offset-4 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </p>
+
+        <p className="text-left sm:text-right">
+          <Link
+            href="/resend-verification"
+            className="font-medium text-slate-950 underline-offset-4 hover:underline"
+          >
+            Need a new verification link?
+          </Link>
+        </p>
+
+        <p className="text-left">
+          Need an account?{" "}
+          <Link
+            href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+            className="font-medium text-slate-950 underline-offset-4 hover:underline"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
     </form>
   );
 }

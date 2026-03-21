@@ -29,7 +29,11 @@ export default function middleware(request: NextRequest) {
   const isProtectedRoute = protectedPrefixes.some((prefix) =>
     pathname.startsWith(prefix),
   );
-  const isAuthRoute = pathname === "/login" || pathname === "/signup";
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/verify-email" ||
+    pathname === "/resend-verification";
 
   if (!isLoggedIn && isProtectedRoute) {
     const loginUrl = new URL("/login", request.nextUrl.origin);
@@ -60,5 +64,7 @@ export const config = {
     "/api/settings/:path*",
     "/login",
     "/signup",
+    "/verify-email",
+    "/resend-verification",
   ],
 };

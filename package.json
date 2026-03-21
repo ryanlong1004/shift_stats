@@ -10,6 +10,7 @@
     "lint": "eslint",
     "check:flows": "tsx scripts/check-shifts-query-state.ts",
     "check:smoke": "tsx scripts/check-smoke-auth.ts",
+    "check:smoke:reset": "tsx scripts/check-smoke-password-reset.ts",
     "check:smoke:local": "tsx scripts/check-smoke-local.ts",
     "check:release": "npm run check:flows && npm run lint && npm run build",
     "db:up": "docker compose up -d postgres",

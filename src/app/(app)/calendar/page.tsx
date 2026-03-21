@@ -5,6 +5,7 @@ import {
   endOfWeek,
   format,
   isSameMonth,
+  isValid,
   parse,
   startOfMonth,
   startOfWeek,
@@ -27,6 +28,11 @@ function resolveMonth(value?: string) {
   }
 
   const parsed = parse(`${value}-01`, "yyyy-MM-dd", new Date());
+
+  if (!isValid(parsed)) {
+    return startOfMonth(new Date());
+  }
+
   return startOfMonth(parsed);
 }
 
@@ -117,7 +123,8 @@ export default async function CalendarPage({
             const dayTotal = totalsByDate.get(dateKey) ?? 0;
             const intensity = maxTotal > 0 ? dayTotal / maxTotal : 0;
             const inMonth = isSameMonth(day, monthStart);
-            const barWidth = dayTotal > 0 ? Math.max(12, Math.round(intensity * 100)) : 0;
+            const barWidth =
+              dayTotal > 0 ? Math.max(12, Math.round(intensity * 100)) : 0;
 
             return (
               <Link
@@ -130,22 +137,31 @@ export default async function CalendarPage({
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className={`text-xs font-semibold ${inMonth ? "text-slate-700" : "text-slate-400"}`}>
+                  <span
+                    className={`text-xs font-semibold ${inMonth ? "text-slate-700" : "text-slate-400"}`}
+                  >
                     {format(day, "d")}
                   </span>
-                  <span className={`text-[10px] ${inMonth ? "text-slate-500" : "text-slate-400"}`}>
+                  <span
+                    className={`text-[10px] ${inMonth ? "text-slate-500" : "text-slate-400"}`}
+                  >
                     {format(day, "EEE")}
                   </span>
                 </div>
 
-                <p className={`mt-3 text-xs sm:text-sm ${inMonth ? "text-slate-900" : "text-slate-400"}`}>
+                <p
+                  className={`mt-3 text-xs sm:text-sm ${inMonth ? "text-slate-900" : "text-slate-400"}`}
+                >
                   {dayTotal > 0 ? formatCurrency(dayTotal) : "No shifts"}
                 </p>
 
                 <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100">
                   <div
                     className="h-1.5 rounded-full bg-slate-900"
-                    style={{ width: `${barWidth}%`, opacity: dayTotal > 0 ? 0.35 + intensity * 0.65 : 0 }}
+                    style={{
+                      width: `${barWidth}%`,
+                      opacity: dayTotal > 0 ? 0.35 + intensity * 0.65 : 0,
+                    }}
                   />
                 </div>
               </Link>

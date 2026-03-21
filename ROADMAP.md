@@ -30,7 +30,9 @@ Completed now:
 - standalone production-mode dry run validated with required auth env vars
 - local production smoke checks validated on key routes (`/`, `/login`, `/dashboard`, `/shifts`, `/api/auth/session`)
 - authenticated smoke script added: `npm run check:smoke`
+- password reset smoke script added: `npm run check:smoke:reset`
 - one-command local production smoke runner added: `npm run check:smoke:local`
+- local smoke runner now applies Prisma migrations automatically before build/start
 - analytics mobile readability improvements shipped (compact axis labels, clearer filter summaries, quick takeaways)
 - weekday analytics hardened to derive from `shiftDate` with regression checks for stale `dayName` mismatches
 - production domain secured: `shift-stats.com`
@@ -40,6 +42,13 @@ Completed now:
 - monthly calendar view (`/calendar`) with day deep-link to filtered shifts
 - weekly schedule view (`/schedule`) with prev/next week navigation
 - database-backed signup flow (`/signup`) with hashed passwords and user profile name
+- account management on `/settings` for profile name and password changes
+- calendar/schedule query-state edge checks (invalid date params + navigation links)
+- password reset flow with request + token confirmation routes and pages
+- password reset flow validated end-to-end in local production smoke checks
+- optional email verification for new signups (`AUTH_REQUIRE_EMAIL_VERIFICATION`)
+- email verification route validated via smoke flow with verification enabled
+- resend verification flow added (`/resend-verification`, `/api/email-verification/request`)
 
 In progress now:
 
@@ -49,9 +58,6 @@ Next up (roadmap priority):
 
 - run `SMOKE_BASE_URL=https://shift-stats.com npm run check:smoke` against production domain
 - execute final manual smoke checks on `https://shift-stats.com` (desktop + mobile)
-- add regression checks for schedule/calendar edge cases (month boundaries, empty weeks)
-- add account management on `/settings` for profile name and password changes
-- add auth hardening follow-ups: reset flow, rate limiting, optional email verification
 
 ## Competitive Feature Roadmap (vs ServerLife)
 

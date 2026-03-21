@@ -1,7 +1,38 @@
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 
-const LOCAL_PORT = process.env.SMOKE_LOCAL_PORT ?? "3103";
-const BASE_URL = `http://localhost:${LOCAL_PORT}`;
+async function resolveLocalPort() {
+  const configuredPort = process.env.SMOKE_LOCAL_PORT;
+
+  if (configuredPort) {
+    return configuredPort;
+  }
+
+  return new Promise<string>((resolve, reject) => {
+    const server = createServer();
+
+    server.unref();
+    server.on("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+
+      if (!address || typeof address === "string") {
+        server.close(() => reject(new Error("Unable to determine free port.")));
+        return;
+      }
+
+      const port = String(address.port);
+      server.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve(port);
+      });
+    });
+  });
+}
 
 function runCommand(
   command: string,
@@ -57,20 +88,30 @@ async function waitForServer(baseUrl: string, timeoutMs: number) {
 }
 
 async function main() {
+  const localPort = await resolveLocalPort();
+  const baseUrl = `http://localhost:${localPort}`;
   const smokeEnv: Record<string, string> = {
     AUTH_SECRET:
       process.env.AUTH_SECRET ?? "local-smoke-secret-change-before-production",
     AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST ?? "true",
+    AUTH_EXPOSE_RESET_URL: process.env.AUTH_EXPOSE_RESET_URL ?? "true",
+    AUTH_EXPOSE_EMAIL_VERIFICATION_URL:
+      process.env.AUTH_EXPOSE_EMAIL_VERIFICATION_URL ?? "true",
+    AUTH_REQUIRE_EMAIL_VERIFICATION:
+      process.env.AUTH_REQUIRE_EMAIL_VERIFICATION ?? "false",
     AUTH_DEMO_EMAIL: process.env.AUTH_DEMO_EMAIL ?? "demo@shiftstats.local",
     AUTH_DEMO_PASSWORD: process.env.AUTH_DEMO_PASSWORD ?? "shiftstats-demo",
-    PORT: LOCAL_PORT,
-    SMOKE_BASE_URL: BASE_URL,
+    PORT: localPort,
+    SMOKE_BASE_URL: baseUrl,
   };
+
+  console.log("Applying Prisma migrations for smoke test database...");
+  await runCommand("npm", ["run", "prisma:migrate:deploy"], smokeEnv);
 
   console.log("Building app for local production smoke test...");
   await runCommand("npm", ["run", "build"]);
 
-  console.log(`Starting standalone server on ${BASE_URL}...`);
+  console.log(`Starting standalone server on ${baseUrl}...`);
   const server = spawn("npm", ["run", "start"], {
     stdio: "inherit",
     env: {
@@ -101,10 +142,13 @@ async function main() {
   });
 
   try {
-    await waitForServer(BASE_URL, 30_000);
+    await waitForServer(baseUrl, 30_000);
 
     console.log("Running authenticated smoke checks...");
     await runCommand("npm", ["run", "check:smoke"], smokeEnv);
+
+    console.log("Running password reset smoke checks...");
+    await runCommand("npm", ["run", "check:smoke:reset"], smokeEnv);
 
     console.log("Local production smoke checks completed successfully.");
   } finally {

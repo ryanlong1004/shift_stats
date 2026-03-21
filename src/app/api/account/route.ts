@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   accountFormSchema,
   getAccountProfile,
@@ -23,6 +24,27 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const rateLimit = consumeRateLimit(request, {
+    key: "account-update",
+    maxRequests: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        message:
+          "Too many account update attempts. Wait a few minutes before trying again.",
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+        },
+      },
+    );
+  }
+
   const body = await request.json();
   const parsed = accountFormSchema.safeParse(body);
 

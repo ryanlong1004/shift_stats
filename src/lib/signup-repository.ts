@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import {
+  isEmailVerificationRequired,
+  issueEmailVerificationToken,
+} from "@/lib/email-verification-repository";
 import { getPrismaClient } from "@/lib/prisma";
 import { hashPassword } from "@/lib/passwords";
 
@@ -58,6 +62,7 @@ export async function createUserAccount(values: SignupValues) {
       name: parsed.data.name,
       email,
       passwordHash: hashPassword(parsed.data.password),
+      emailVerifiedAt: isEmailVerificationRequired() ? null : new Date(),
       userSettings: {
         create: {
           currencyCode: "USD",
@@ -72,6 +77,14 @@ export async function createUserAccount(values: SignupValues) {
     },
   });
 
+  let verificationUrl: string | undefined;
+  const requiresEmailVerification = isEmailVerificationRequired();
+
+  if (requiresEmailVerification) {
+    const issued = await issueEmailVerificationToken(user.id);
+    verificationUrl = issued.verificationUrl;
+  }
+
   return {
     ok: true as const,
     user: {
@@ -79,5 +92,7 @@ export async function createUserAccount(values: SignupValues) {
       email: user.email,
       name: user.name,
     },
+    requiresEmailVerification,
+    verificationUrl,
   };
 }

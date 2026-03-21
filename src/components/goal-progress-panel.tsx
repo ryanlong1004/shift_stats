@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
 
 import { formatCurrency } from "@/lib/formatters";
 import type { GoalProgress } from "@/lib/goals-progress";
@@ -45,32 +45,30 @@ function GoalDonut({ goal }: { goal: GoalProgress }) {
       </p>
 
       <div className="relative mt-3 h-28 w-28">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={38}
-              outerRadius={52}
-              startAngle={90}
-              endAngle={-270}
-              dataKey="value"
-              strokeWidth={0}
-            >
-              <Cell fill={color} />
-              <Cell fill="#e2e8f0" />
-            </Pie>
-            <Tooltip
-              formatter={(val, name) => {
-                const num = typeof val === "number" ? val : Number(val ?? 0);
-                return name === "Progress"
-                  ? [`${num.toFixed(1)}%`, "Progress"]
-                  : [`${num.toFixed(1)}%`, "Remaining"];
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <PieChart width={112} height={112}>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={38}
+            outerRadius={52}
+            startAngle={90}
+            endAngle={-270}
+            dataKey="value"
+            strokeWidth={0}
+          >
+            <Cell fill={color} />
+            <Cell fill="#e2e8f0" />
+          </Pie>
+          <Tooltip
+            formatter={(val, name) => {
+              const num = typeof val === "number" ? val : Number(val ?? 0);
+              return name === "Progress"
+                ? [`${num.toFixed(1)}%`, "Progress"]
+                : [`${num.toFixed(1)}%`, "Remaining"];
+            }}
+          />
+        </PieChart>
         {/* centre label */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-lg font-bold leading-none text-slate-950">

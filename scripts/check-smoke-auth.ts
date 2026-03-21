@@ -1,3 +1,5 @@
+export {};
+
 type AssertOptions = {
   path: string;
   expectedStatuses: number[];
@@ -47,6 +49,16 @@ function fail(message: string): never {
   throw new Error(message);
 }
 
+function formatFetchFailure(baseUrl: string, path: string, error: unknown) {
+  const reason = error instanceof Error ? error.message : String(error);
+
+  return [
+    `Unable to reach ${baseUrl}${path}.`,
+    "Start the app server first or use `npm run check:smoke:local` to build and boot a local production server automatically.",
+    `Fetch error: ${reason}`,
+  ].join(" ");
+}
+
 async function main() {
   const baseUrl = (
     process.env.SMOKE_BASE_URL ?? "http://localhost:3003"
@@ -73,11 +85,17 @@ async function main() {
       headers.set("cookie", jar.toHeaderValue());
     }
 
-    const response = await fetch(`${baseUrl}${path}`, {
-      ...init,
-      headers,
-      redirect: "manual",
-    });
+    let response: Response;
+
+    try {
+      response = await fetch(`${baseUrl}${path}`, {
+        ...init,
+        headers,
+        redirect: "manual",
+      });
+    } catch (error) {
+      fail(formatFetchFailure(baseUrl, path, error));
+    }
 
     const setCookies = response.headers.getSetCookie?.() ?? [];
     jar.addFromSetCookie(setCookies);

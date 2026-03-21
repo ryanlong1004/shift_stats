@@ -51,6 +51,10 @@ function hasDatabaseUrl() {
   return Boolean(process.env.DATABASE_URL);
 }
 
+function isEmailVerificationRequired() {
+  return process.env.AUTH_REQUIRE_EMAIL_VERIFICATION === "true";
+}
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   secret: getAuthSecret(),
   trustHost: getTrustHost(),
@@ -92,6 +96,13 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               return null;
             }
 
+            if (
+              isEmailVerificationRequired() &&
+              !existingUser.emailVerifiedAt
+            ) {
+              return null;
+            }
+
             return {
               id: existingUser.id,
               email: existingUser.email,
@@ -121,10 +132,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             where: { email: submittedEmail },
             update: {
               name,
+              emailVerifiedAt: new Date(),
             },
             create: {
               email: submittedEmail,
               name,
+              emailVerifiedAt: new Date(),
               userSettings: {
                 create: {
                   currencyCode: "USD",

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { consumeRateLimit } from "@/lib/rate-limit";
-import { createUserAccount } from "@/lib/signup-repository";
+import { requestPasswordReset } from "@/lib/password-reset-repository";
 
 export async function POST(request: Request) {
   const rateLimit = consumeRateLimit(request, {
-    key: "signup",
+    key: "password-reset-request",
     maxRequests: 5,
     windowMs: 15 * 60 * 1000,
   });
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message:
-          "Too many signup attempts from this network. Try again in a few minutes.",
+          "Too many password reset requests from this network. Try again in a few minutes.",
       },
       {
         status: 429,
@@ -26,24 +26,20 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const result = await createUserAccount(body);
+  const result = await requestPasswordReset(body);
 
   if (!result.ok) {
     return NextResponse.json(
-      {
-        message: result.message,
-        fieldErrors: "fieldErrors" in result ? result.fieldErrors : undefined,
-      },
+      { message: result.message, fieldErrors: result.fieldErrors },
       { status: result.status },
     );
   }
 
   return NextResponse.json(
     {
-      user: result.user,
-      requiresEmailVerification: result.requiresEmailVerification,
-      verificationUrl: result.verificationUrl,
+      message: result.message,
+      resetUrl: result.resetUrl,
     },
-    { status: 201 },
+    { status: 200 },
   );
 }

@@ -201,6 +201,10 @@ function runChecks() {
     "Calendar page should expose next month navigation",
   );
   assert.ok(
+    calendarPageSource.includes("if (!isValid(parsed))"),
+    "Calendar page should guard invalid month query values",
+  );
+  assert.ok(
     calendarPageSource.includes(
       "/shifts?preset=custom&startDate=${dateKey}&endDate=${dateKey}",
     ),
@@ -219,6 +223,10 @@ function runChecks() {
   assert.ok(
     schedulePageSource.includes("/schedule?week=${nextWeek}"),
     "Schedule page should expose next week navigation",
+  );
+  assert.ok(
+    schedulePageSource.includes("if (!isValid(parsed))"),
+    "Schedule page should guard invalid week query values",
   );
   assert.ok(
     schedulePageSource.includes('href="/shifts/new"'),
