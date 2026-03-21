@@ -5,6 +5,11 @@ import { hashPassword } from "@/lib/passwords";
 
 export const signupSchema = z
   .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "Name must be at least 2 characters.")
+      .max(80, "Name must be 80 characters or less."),
     email: z.string().email("Enter a valid email address."),
     password: z.string().min(8, "Password must be at least 8 characters."),
     confirmPassword: z.string().min(1, "Please confirm your password."),
@@ -50,6 +55,7 @@ export async function createUserAccount(values: SignupValues) {
 
   const user = await prisma.user.create({
     data: {
+      name: parsed.data.name,
       email,
       passwordHash: hashPassword(parsed.data.password),
       userSettings: {
@@ -71,6 +77,7 @@ export async function createUserAccount(values: SignupValues) {
     user: {
       id: user.id,
       email: user.email,
+      name: user.name,
     },
   };
 }

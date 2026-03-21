@@ -22,7 +22,7 @@ export default async function SignupPage() {
           </h1>
           <p className="max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
             Save your own shift history, goals, settings, calendar, and
-            analytics in a personal account secured with your email and
+            analytics in a personal account secured with your name, email, and
             password.
           </p>
         </div>

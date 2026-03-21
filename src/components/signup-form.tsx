@@ -9,6 +9,7 @@ export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,7 +25,7 @@ export function SignupForm() {
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, confirmPassword }),
+        body: JSON.stringify({ name, email, password, confirmPassword }),
       });
 
       const payload = (await response.json()) as {
@@ -35,6 +36,7 @@ export function SignupForm() {
       if (!response.ok) {
         setError(
           payload.message ??
+            payload.fieldErrors?.name?.[0] ??
             payload.fieldErrors?.confirmPassword?.[0] ??
             payload.fieldErrors?.email?.[0] ??
             payload.fieldErrors?.password?.[0] ??
@@ -66,6 +68,20 @@ export function SignupForm() {
       className="space-y-5 rounded-[1.75rem] border border-slate-900/10 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
     >
       <div>
+        <label className="block text-sm font-medium text-slate-700">Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950"
+          autoComplete="name"
+          minLength={2}
+          maxLength={80}
+          required
+        />
+      </div>
+
+      <div>
         <label className="block text-sm font-medium text-slate-700">
           Email
         </label>
@@ -74,6 +90,7 @@ export function SignupForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950"
+          autoComplete="email"
           required
         />
       </div>
@@ -87,6 +104,7 @@ export function SignupForm() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950"
+          autoComplete="new-password"
           minLength={8}
           required
         />
@@ -101,6 +119,7 @@ export function SignupForm() {
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
           className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-950"
+          autoComplete="new-password"
           minLength={8}
           required
         />
