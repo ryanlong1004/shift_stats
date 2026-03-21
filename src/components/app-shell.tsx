@@ -8,6 +8,7 @@ import {
   PlusCircle,
   Settings,
   TableProperties,
+  Target,
 } from "lucide-react";
 
 import { SignOutButton } from "@/components/sign-out-button";
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/shifts", label: "Shifts", icon: TableProperties },
   { href: "/shifts/new", label: "Add Shift", icon: PlusCircle },
   { href: "/analytics", label: "Analytics", icon: ChartNoAxesCombined },
+  { href: "/goals", label: "Goals", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

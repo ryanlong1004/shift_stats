@@ -1,14 +1,20 @@
 import Link from "next/link";
 
-import { LazyEarningsTrendChart } from "@/components/charts/lazy-earnings-trend-chart";
+import { LazyCompareEarningsTrendChart } from "@/components/charts/lazy-compare-earnings-trend-chart";
 import { LazyWeekdayPerformanceChart } from "@/components/charts/lazy-weekday-performance-chart";
 import { SummaryCard } from "@/components/summary-card";
+import { GoalProgressPanel } from "@/components/goal-progress-panel";
 import { formatCurrency } from "@/lib/formatters";
 import {
   getDashboardSnapshot,
   getDistinctLocationsAndRoles,
+  listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
+import { getPreviousPeriodSeries } from "@/lib/shift-repository";
+import { listGoals } from "@/lib/goals-repository";
+import { computeGoalProgress } from "@/lib/goals-progress";
+import { getUserSettings } from "@/lib/settings-repository";
 
 type AnalyticsPageSearchParams = {
   preset?: string;
@@ -22,6 +28,7 @@ const filterPresets = [
   { value: "all", label: "All" },
   { value: "week", label: "Current week" },
   { value: "month", label: "Current month" },
+  { value: "pay", label: "Pay period" },
   { value: "custom", label: "Custom" },
 ] as const;
 
@@ -34,21 +41,34 @@ export default async function AnalyticsPage({
   const preset: ShiftListFilters["preset"] =
     resolvedSearchParams.preset === "week" ||
     resolvedSearchParams.preset === "month" ||
-    resolvedSearchParams.preset === "custom"
+    resolvedSearchParams.preset === "custom" ||
+    resolvedSearchParams.preset === "pay"
       ? resolvedSearchParams.preset
       : "all";
+
+  const settings = await getUserSettings();
+
   const filters: ShiftListFilters = {
     preset,
     startDate: resolvedSearchParams.startDate,
     endDate: resolvedSearchParams.endDate,
     location: resolvedSearchParams.location,
     role: resolvedSearchParams.role,
+    payPeriodSettings:
+      preset === "pay"
+        ? { type: settings.payPeriodType, anchor: settings.payPeriodAnchor }
+        : undefined,
   };
 
-  const [snapshot, { locations, roles }] = await Promise.all([
-    getDashboardSnapshot(filters),
-    getDistinctLocationsAndRoles(),
-  ]);
+  const [snapshot, { locations, roles }, allRows, goals, prevSeries] =
+    await Promise.all([
+      getDashboardSnapshot(filters),
+      getDistinctLocationsAndRoles(),
+      listShiftRecords(),
+      listGoals(),
+      getPreviousPeriodSeries(filters),
+    ]);
+  const goalProgress = computeGoalProgress(goals, allRows);
 
   return (
     <div className="space-y-6">
@@ -270,9 +290,14 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <LazyEarningsTrendChart data={snapshot.earningsSeries} />
+        <LazyCompareEarningsTrendChart
+          data={snapshot.earningsSeries}
+          prevData={prevSeries}
+        />
         <LazyWeekdayPerformanceChart data={snapshot.weekdaySeries} />
       </section>
+
+      <GoalProgressPanel goals={goalProgress} />
     </div>
   );
 }

@@ -7,6 +7,8 @@ import {
   userSettingsSchema,
   type UserSettings,
   type UserSettingsFormValues,
+  PAY_PERIOD_TYPES,
+  PAY_PERIOD_ANCHORS,
 } from "@/lib/settings-repository";
 
 type SettingsFormProps = {
@@ -39,6 +41,8 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     trackBasePay: initialSettings.trackBasePay,
     splitTipsByType: initialSettings.splitTipsByType,
     trackSales: initialSettings.trackSales,
+    payPeriodType: initialSettings.payPeriodType,
+    payPeriodAnchor: initialSettings.payPeriodAnchor,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -200,6 +204,46 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             Track sales &amp; tip percentage
           </span>
         </label>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <Field label="Pay period type">
+          <select
+            value={values.payPeriodType}
+            onChange={(e) =>
+              updateValue(
+                "payPeriodType",
+                e.target.value as typeof values.payPeriodType,
+              )
+            }
+            className={inputClassName()}
+          >
+            {PAY_PERIOD_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Pay period starts on">
+          <select
+            value={values.payPeriodAnchor}
+            onChange={(e) =>
+              updateValue(
+                "payPeriodAnchor",
+                e.target.value as typeof values.payPeriodAnchor,
+              )
+            }
+            className={inputClassName()}
+          >
+            {PAY_PERIOD_ANCHORS.map((d) => (
+              <option key={d} value={d}>
+                {d.charAt(0).toUpperCase() + d.slice(1)}
+              </option>
+            ))}
+          </select>
+        </Field>
       </div>
 
       {statusMessage ? (

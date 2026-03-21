@@ -3,10 +3,15 @@ import Link from "next/link";
 import { LazyEarningsTrendChart } from "@/components/charts/lazy-earnings-trend-chart";
 import { SummaryCard } from "@/components/summary-card";
 import { ShiftHistoryTable } from "@/components/shift-history-table";
+import { GoalProgressPanel } from "@/components/goal-progress-panel";
 import {
   getDashboardSnapshot,
+  listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
+import { listGoals } from "@/lib/goals-repository";
+import { computeGoalProgress } from "@/lib/goals-progress";
+import { getUserSettings } from "@/lib/settings-repository";
 
 type DashboardPageSearchParams = {
   preset?: string;
@@ -20,6 +25,7 @@ const periodChips = [
   { value: "all", label: "All time" },
   { value: "week", label: "This week" },
   { value: "month", label: "This month" },
+  { value: "pay", label: "Pay period" },
 ] as const;
 
 export default async function DashboardPage({
@@ -31,18 +37,31 @@ export default async function DashboardPage({
   const preset: ShiftListFilters["preset"] =
     resolvedSearchParams.preset === "week" ||
     resolvedSearchParams.preset === "month" ||
-    resolvedSearchParams.preset === "custom"
+    resolvedSearchParams.preset === "custom" ||
+    resolvedSearchParams.preset === "pay"
       ? resolvedSearchParams.preset
       : "all";
+
+  const settings = await getUserSettings();
+
   const filters: ShiftListFilters = {
     preset,
     startDate: resolvedSearchParams.startDate,
     endDate: resolvedSearchParams.endDate,
     location: resolvedSearchParams.location,
     role: resolvedSearchParams.role,
+    payPeriodSettings:
+      preset === "pay"
+        ? { type: settings.payPeriodType, anchor: settings.payPeriodAnchor }
+        : undefined,
   };
 
-  const snapshot = await getDashboardSnapshot(filters);
+  const [snapshot, allRows, goals] = await Promise.all([
+    getDashboardSnapshot(filters),
+    listShiftRecords(),
+    listGoals(),
+  ]);
+  const goalProgress = computeGoalProgress(goals, allRows);
 
   return (
     <div className="space-y-6">
@@ -108,6 +127,8 @@ export default async function DashboardPage({
           kind="number"
         />
       </section>
+
+      <GoalProgressPanel goals={goalProgress} />
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <LazyEarningsTrendChart data={snapshot.earningsSeries} />

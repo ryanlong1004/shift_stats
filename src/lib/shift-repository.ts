@@ -5,6 +5,8 @@ import {
   parseISO,
   startOfMonth,
   startOfWeek,
+  addDays,
+  subDays,
 } from "date-fns";
 
 import { auth } from "@/auth";
@@ -28,19 +30,24 @@ export function isDatabaseConfigured() {
 }
 
 export type ShiftListFilters = {
-  preset?: "all" | "week" | "month" | "custom";
+  preset?: "all" | "week" | "month" | "custom" | "pay";
   startDate?: string;
   endDate?: string;
   location?: string;
   role?: string;
+  payPeriodSettings?: {
+    type: "weekly" | "biweekly";
+    anchor: string; // day name e.g. "monday"
+  };
 };
 
 type NormalizedShiftListFilters = {
-  preset: "all" | "week" | "month" | "custom";
+  preset: "all" | "week" | "month" | "custom" | "pay";
   startDate: string | null;
   endDate: string | null;
   location: string | null;
   role: string | null;
+  payPeriodSettings?: ShiftListFilters["payPeriodSettings"];
 };
 
 function normalizeFilters(
@@ -49,7 +56,8 @@ function normalizeFilters(
   const preset =
     filters?.preset === "week" ||
     filters?.preset === "month" ||
-    filters?.preset === "custom"
+    filters?.preset === "custom" ||
+    filters?.preset === "pay"
       ? filters.preset
       : "all";
   const normalizeDate = (value: string | undefined) => {
@@ -71,6 +79,35 @@ function normalizeFilters(
     endDate: normalizeDate(filters?.endDate),
     location: normalizeText(filters?.location),
     role: normalizeText(filters?.role),
+    payPeriodSettings: filters?.payPeriodSettings,
+  };
+}
+
+const dayNameToWeekStartsOn: Record<string, 0 | 1 | 2 | 3 | 4 | 5 | 6> = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+};
+
+function resolvePayPeriodRange(
+  settings?: ShiftListFilters["payPeriodSettings"],
+) {
+  const anchor = settings?.anchor ?? "monday";
+  const type = settings?.type ?? "weekly";
+  const weekStartsOn = dayNameToWeekStartsOn[anchor] ?? 1;
+  const now = new Date();
+  const periodStart = startOfWeek(now, { weekStartsOn });
+  const periodEnd =
+    type === "biweekly"
+      ? subDays(addDays(periodStart, 14), 1)
+      : subDays(addDays(periodStart, 7), 1);
+  return {
+    startDate: format(periodStart, "yyyy-MM-dd"),
+    endDate: format(periodEnd, "yyyy-MM-dd"),
   };
 }
 
@@ -91,6 +128,10 @@ function resolveDateRange(filters: NormalizedShiftListFilters) {
       startDate: format(startOfMonth(now), "yyyy-MM-dd"),
       endDate: format(endOfMonth(now), "yyyy-MM-dd"),
     };
+  }
+
+  if (filters.preset === "pay") {
+    return resolvePayPeriodRange(filters.payPeriodSettings);
   }
 
   if (filters.preset === "custom") {
@@ -361,6 +402,69 @@ export async function getDashboardSnapshot(
     listShiftRecords(),
   ]);
   return buildDashboardSnapshot(filteredRows, allRows);
+}
+
+export type EarningsSeries = DashboardSnapshot["earningsSeries"];
+
+export async function getPreviousPeriodSeries(
+  filters?: ShiftListFilters,
+): Promise<EarningsSeries> {
+  const normalizedPreset = filters?.preset ?? "all";
+  if (normalizedPreset === "all" || normalizedPreset === "custom") {
+    return [];
+  }
+
+  const now = new Date();
+  let prevStartDate: string | null = null;
+  let prevEndDate: string | null = null;
+
+  if (normalizedPreset === "week") {
+    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const prevStart = startOfWeek(
+      new Date(thisWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000),
+      { weekStartsOn: 1 },
+    );
+    const prevEnd = new Date(thisWeekStart.getTime() - 1);
+    prevStartDate = format(prevStart, "yyyy-MM-dd");
+    prevEndDate = format(prevEnd, "yyyy-MM-dd");
+  } else if (normalizedPreset === "month") {
+    const prevMonthStart = startOfMonth(
+      new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    );
+    const prevMonthEnd = endOfMonth(prevMonthStart);
+    prevStartDate = format(prevMonthStart, "yyyy-MM-dd");
+    prevEndDate = format(prevMonthEnd, "yyyy-MM-dd");
+  } else if (normalizedPreset === "pay") {
+    const currentRange = resolvePayPeriodRange(filters?.payPeriodSettings);
+    if (!currentRange.startDate) return [];
+    const currentStart = parseISO(currentRange.startDate);
+    const periodDays = filters?.payPeriodSettings?.type === "biweekly" ? 14 : 7;
+    const prevStart = new Date(
+      currentStart.getTime() - periodDays * 24 * 60 * 60 * 1000,
+    );
+    const prevEnd = new Date(currentStart.getTime() - 24 * 60 * 60 * 1000);
+    prevStartDate = format(prevStart, "yyyy-MM-dd");
+    prevEndDate = format(prevEnd, "yyyy-MM-dd");
+  }
+
+  if (!prevStartDate || !prevEndDate) return [];
+
+  const prevRows = await listShiftRecords({
+    preset: "custom",
+    startDate: prevStartDate,
+    endDate: prevEndDate,
+    location: filters?.location,
+    role: filters?.role,
+  });
+
+  return [...prevRows]
+    .sort((a, b) => a.shiftDate.localeCompare(b.shiftDate))
+    .map((row, i) => ({
+      label: `P${i + 1}`,
+      weekday: row.dayName,
+      earned: row.totalEarned,
+      hourlyRate: row.hourlyRate,
+    }));
 }
 
 export async function getShiftSnapshot(filters?: ShiftListFilters) {

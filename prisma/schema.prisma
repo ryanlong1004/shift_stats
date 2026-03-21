@@ -20,6 +20,7 @@ model User {
   updatedAt    DateTime     @updatedAt
   shifts       Shift[]
   userSettings UserSettings?
+  goals        Goal[]
 }
 
 model Shift {
@@ -56,7 +57,38 @@ model UserSettings {
   trackBasePay    Boolean  @default(true)
   splitTipsByType Boolean  @default(true)
   trackSales      Boolean  @default(false)
+  payPeriodType   String   @default("weekly")
+  payPeriodAnchor String   @default("monday")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goals           Goal[]
+}
+
+enum GoalPeriod {
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+enum GoalMetric {
+  takeHome
+  hours
+  avgHourly
+}
+
+model Goal {
+  id           String       @id @default(cuid())
+  userId       String
+  settingsId   String
+  period       GoalPeriod
+  metricType   GoalMetric
+  targetValue  Decimal      @db.Decimal(10, 2)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userSettings UserSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

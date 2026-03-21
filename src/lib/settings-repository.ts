@@ -3,12 +3,28 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { getPrismaClient } from "@/lib/prisma";
 
+export const PAY_PERIOD_TYPES = ["weekly", "biweekly"] as const;
+export const PAY_PERIOD_ANCHORS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+
+export type PayPeriodType = (typeof PAY_PERIOD_TYPES)[number];
+export type PayPeriodAnchor = (typeof PAY_PERIOD_ANCHORS)[number];
+
 export const userSettingsSchema = z.object({
   currencyCode: z.string().length(3, "Currency code must be 3 characters."),
   timezone: z.string().min(1, "Timezone is required."),
   trackBasePay: z.boolean(),
   splitTipsByType: z.boolean(),
   trackSales: z.boolean(),
+  payPeriodType: z.enum(PAY_PERIOD_TYPES),
+  payPeriodAnchor: z.enum(PAY_PERIOD_ANCHORS),
 });
 
 export type UserSettingsFormValues = z.infer<typeof userSettingsSchema>;
@@ -20,6 +36,8 @@ export type UserSettings = {
   trackBasePay: boolean;
   splitTipsByType: boolean;
   trackSales: boolean;
+  payPeriodType: PayPeriodType;
+  payPeriodAnchor: PayPeriodAnchor;
 };
 
 async function getCurrentUserContext() {
@@ -61,6 +79,8 @@ export async function getUserSettings(): Promise<UserSettings> {
     trackBasePay: settings.trackBasePay,
     splitTipsByType: settings.splitTipsByType,
     trackSales: settings.trackSales,
+    payPeriodType: (settings.payPeriodType ?? "weekly") as PayPeriodType,
+    payPeriodAnchor: (settings.payPeriodAnchor ?? "monday") as PayPeriodAnchor,
   };
 }
 
@@ -86,6 +106,9 @@ export async function updateUserSettings(values: UserSettingsFormValues) {
       timezone: parsed.data.timezone,
       trackBasePay: parsed.data.trackBasePay,
       splitTipsByType: parsed.data.splitTipsByType,
+      trackSales: parsed.data.trackSales,
+      payPeriodType: parsed.data.payPeriodType,
+      payPeriodAnchor: parsed.data.payPeriodAnchor,
     },
   });
 
@@ -97,6 +120,9 @@ export async function updateUserSettings(values: UserSettingsFormValues) {
       timezone: updated.timezone,
       trackBasePay: updated.trackBasePay,
       splitTipsByType: updated.splitTipsByType,
+      trackSales: updated.trackSales,
+      payPeriodType: (updated.payPeriodType ?? "weekly") as PayPeriodType,
+      payPeriodAnchor: (updated.payPeriodAnchor ?? "monday") as PayPeriodAnchor,
     },
   };
 }
