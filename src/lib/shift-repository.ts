@@ -478,7 +478,11 @@ export async function getPreviousPeriodTotals(
   filters?: ShiftListFilters,
 ): Promise<PreviousPeriodTotals | null> {
   const normalizedPreset = filters?.preset ?? "all";
-  if (normalizedPreset === "all" || normalizedPreset === "custom" || !isDatabaseConfigured()) {
+  if (
+    normalizedPreset === "all" ||
+    normalizedPreset === "custom" ||
+    !isDatabaseConfigured()
+  ) {
     return null;
   }
 
