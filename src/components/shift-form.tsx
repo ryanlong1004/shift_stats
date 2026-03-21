@@ -297,57 +297,61 @@ export function ShiftForm({
         ) : null}
 
         <div className="grid gap-5 md:grid-cols-2">
-          <Field label="Location" error={errors.location}>
-            {locationOptions.length > 0 ? (
-              <select
-                value={values.location}
-                onChange={(event) =>
-                  updateValue("location", event.target.value)
-                }
-                className={inputClassName(errors.location)}
-              >
-                <option value="">Select a location…</option>
-                {locationOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : (
+          <Field
+            label="Location"
+            hint={
+              locationOptions.length
+                ? "Type a new location or pick a saved one."
+                : undefined
+            }
+            error={errors.location}
+          >
+            <>
               <input
                 type="text"
-                placeholder="Downtown"
+                list="location-options"
+                placeholder="Select or type a location..."
                 value={values.location}
                 onChange={(event) =>
                   updateValue("location", event.target.value)
                 }
                 className={inputClassName(errors.location)}
               />
-            )}
+              {locationOptions.length ? (
+                <datalist id="location-options">
+                  {locationOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              ) : null}
+            </>
           </Field>
-          <Field label="Role" error={errors.role}>
-            {roleOptions.length > 0 ? (
-              <select
-                value={values.role}
-                onChange={(event) => updateValue("role", event.target.value)}
-                className={inputClassName(errors.role)}
-              >
-                <option value="">Select a role…</option>
-                {roleOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : (
+          <Field
+            label="Role"
+            hint={
+              roleOptions.length
+                ? "Type a new role or pick a saved one."
+                : undefined
+            }
+            error={errors.role}
+          >
+            <>
               <input
                 type="text"
-                placeholder="Server"
+                list="role-options"
+                placeholder="Select or type a role..."
                 value={values.role}
                 onChange={(event) => updateValue("role", event.target.value)}
                 className={inputClassName(errors.role)}
               />
-            )}
+              {roleOptions.length ? (
+                <datalist id="role-options">
+                  {roleOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              ) : null}
+            </>
           </Field>
         </div>
 
