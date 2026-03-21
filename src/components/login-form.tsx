@@ -28,11 +28,18 @@ export function LoginForm({
     setError(null);
 
     startTransition(async () => {
+      // next-auth v5 beta.25: when redirect:false, it calls new URL(data.url)
+      // which throws if the server returns a relative URL. Passing an absolute
+      // callbackUrl ensures the server echoes it back as absolute.
+      const absoluteCallbackUrl = callbackUrl.startsWith("http")
+        ? callbackUrl
+        : `${window.location.origin}${callbackUrl.startsWith("/") ? "" : "/"}${callbackUrl}`;
+
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
-        callbackUrl,
+        callbackUrl: absoluteCallbackUrl,
       });
 
       if (!result || result.status === 429) {
