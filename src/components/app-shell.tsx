@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarDays,
   ChartNoAxesCombined,
   LayoutDashboard,
   PlusCircle,
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/shifts", label: "Shifts", icon: TableProperties },
   { href: "/shifts/new", label: "Add Shift", icon: PlusCircle },
   { href: "/analytics", label: "Analytics", icon: ChartNoAxesCombined },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/goals", label: "Goals", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
