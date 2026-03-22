@@ -29,7 +29,14 @@ type AnalyticsPageSearchParams = {
   excludeOutliers?: string;
   outlierSensitivity?: string;
   forecastScenario?: string;
+  forecastHorizon?: string;
 };
+
+const FORECAST_HORIZON_OPTIONS = [
+  { value: "7", label: "7 days", days: 7 },
+  { value: "14", label: "14 days", days: 14 },
+  { value: "30", label: "30 days", days: 30 },
+] as const;
 
 const FORECAST_SCENARIOS = [
   {
@@ -142,6 +149,10 @@ export default async function AnalyticsPage({
     FORECAST_SCENARIOS.find(
       (option) => option.value === resolvedSearchParams.forecastScenario,
     ) ?? FORECAST_SCENARIOS[0];
+  const selectedForecastHorizon =
+    FORECAST_HORIZON_OPTIONS.find(
+      (option) => option.value === resolvedSearchParams.forecastHorizon,
+    ) ?? FORECAST_HORIZON_OPTIONS[0];
 
   const filters: ShiftListFilters = {
     preset,
@@ -167,6 +178,7 @@ export default async function AnalyticsPage({
     getDashboardSnapshot(filters, settings.payPeriodAnchor, {
       excludeOutliers,
       outlierIqrMultiplier,
+      forecastHorizonDays: selectedForecastHorizon.days,
     }),
     getDistinctLocationsAndRoles(),
     listShiftRecords(),
@@ -240,6 +252,13 @@ export default async function AnalyticsPage({
     activeFilters.push({
       label: "Forecast",
       value: selectedForecastScenario.label,
+    });
+  }
+
+  if (selectedForecastHorizon.days !== 7) {
+    activeFilters.push({
+      label: "Horizon",
+      value: selectedForecastHorizon.label,
     });
   }
 
@@ -415,6 +434,21 @@ export default async function AnalyticsPage({
               ))}
             </select>
           </label>
+
+          <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+            Forecast horizon
+            <select
+              name="forecastHorizon"
+              defaultValue={selectedForecastHorizon.value}
+              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
+            >
+              {FORECAST_HORIZON_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </form>
 
@@ -577,7 +611,7 @@ export default async function AnalyticsPage({
               Phase 4 diagnostics
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">
-              7-day forecast
+              {snapshot.forecast.horizonDays}-day forecast
             </h2>
           </div>
           <p className="text-xs text-slate-500">

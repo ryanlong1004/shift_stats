@@ -170,6 +170,7 @@ export type OutlierDiagnostics = {
 export type DashboardSnapshotOptions = {
   excludeOutliers?: boolean;
   outlierIqrMultiplier?: number;
+  forecastHorizonDays?: number;
 };
 
 function round(value: number) {
@@ -450,6 +451,14 @@ function sanitizeOutlierIqrMultiplier(value: number | undefined) {
   return round(value);
 }
 
+function sanitizeForecastHorizonDays(value: number | undefined) {
+  if (value === 14 || value === 30) {
+    return value;
+  }
+
+  return 7;
+}
+
 function getOutlierDiagnostics(
   rows: ShiftRecord[],
   outlierIqrMultiplier = 1.5,
@@ -619,6 +628,9 @@ export function buildDashboardSnapshot(
 ): DashboardSnapshot {
   const outlierIqrMultiplier = sanitizeOutlierIqrMultiplier(
     options.outlierIqrMultiplier,
+  );
+  const forecastHorizonDays = sanitizeForecastHorizonDays(
+    options.forecastHorizonDays,
   );
   const referenceDate = new Date();
   const sortedRows = [...rows].sort((left, right) =>
@@ -793,7 +805,6 @@ export function buildDashboardSnapshot(
   const currentPeriodDailyAvgEarned = round(base.totalEarned / currentSpanDays);
   const currentPeriodDailyAvgHours = round(base.totalHours / currentSpanDays);
   const forecastWindowDays = 30;
-  const forecastHorizonDays = 7;
   const dailyEarnedSeries = getDailyEarningsSeries(
     workingRows,
     referenceDate,
