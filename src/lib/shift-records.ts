@@ -73,6 +73,20 @@ export type DashboardSnapshot = ShiftSnapshot & {
     perWeek: { earned: number; hours: number };
     perMonth: { earned: number; hours: number };
   };
+  profitability: {
+    byRole: ProfitabilityBreakdownRow[];
+    byLocation: ProfitabilityBreakdownRow[];
+    byShiftType: ProfitabilityBreakdownRow[];
+  };
+};
+
+export type ProfitabilityBreakdownRow = {
+  label: string;
+  shifts: number;
+  totalEarned: number;
+  totalHours: number;
+  weightedHourlyRate: number;
+  contributionPct: number;
 };
 
 function round(value: number) {
@@ -131,6 +145,67 @@ function getWeekStartsOn(
     | 4
     | 5
     | 6;
+}
+
+function normalizeBreakdownLabel(value: string | null) {
+  return value && value.trim().length > 0 ? value.trim() : "Unspecified";
+}
+
+function buildProfitabilityBreakdown(
+  rows: ShiftRecord[],
+  totalEarnedAcrossRows: number,
+  getLabel: (row: ShiftRecord) => string,
+): ProfitabilityBreakdownRow[] {
+  const grouped = new Map<
+    string,
+    { shifts: number; totalEarned: number; totalHours: number }
+  >();
+
+  for (const row of rows) {
+    const label = getLabel(row);
+    const current = grouped.get(label) ?? {
+      shifts: 0,
+      totalEarned: 0,
+      totalHours: 0,
+    };
+
+    grouped.set(label, {
+      shifts: current.shifts + 1,
+      totalEarned: current.totalEarned + row.totalEarned,
+      totalHours: current.totalHours + row.hoursWorked,
+    });
+  }
+
+  const rowsForBreakdown = Array.from(grouped.entries()).map(
+    ([label, values]) => {
+      const weightedHourlyRate =
+        values.totalHours > 0 ? values.totalEarned / values.totalHours : 0;
+
+      return {
+        label,
+        shifts: values.shifts,
+        totalEarned: round(values.totalEarned),
+        totalHours: round(values.totalHours),
+        weightedHourlyRate: round(weightedHourlyRate),
+        contributionPct:
+          totalEarnedAcrossRows > 0
+            ? round((values.totalEarned / totalEarnedAcrossRows) * 100)
+            : 0,
+      };
+    },
+  );
+
+  return rowsForBreakdown.sort((left, right) => {
+    if (right.totalEarned !== left.totalEarned) {
+      return right.totalEarned - left.totalEarned;
+    }
+
+    if (right.weightedHourlyRate !== left.weightedHourlyRate) {
+      return right.weightedHourlyRate - left.weightedHourlyRate;
+    }
+
+    return left.label.localeCompare(right.label);
+  });
 }
 
 export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
@@ -362,5 +437,20 @@ export function buildDashboardSnapshot(
     insights,
     bestWeekdayRate: bestWeekdayEntry?.hourlyRate ?? 0,
     averages,
+    profitability: {
+      byRole: buildProfitabilityBreakdown(sortedRows, base.totalEarned, (row) =>
+        normalizeBreakdownLabel(row.role),
+      ),
+      byLocation: buildProfitabilityBreakdown(
+        sortedRows,
+        base.totalEarned,
+        (row) => normalizeBreakdownLabel(row.location),
+      ),
+      byShiftType: buildProfitabilityBreakdown(
+        sortedRows,
+        base.totalEarned,
+        (row) => normalizeBreakdownLabel(row.shiftType),
+      ),
+    },
   };
 }

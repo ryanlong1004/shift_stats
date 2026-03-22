@@ -40,6 +40,10 @@ function formatShiftLabel(value: string | null) {
   return value && value.trim().length > 0 ? value : "Unspecified";
 }
 
+function formatPct(value: number) {
+  return `${value.toFixed(1)}%`;
+}
+
 export default async function AnalyticsPage({
   searchParams,
 }: {
@@ -341,6 +345,85 @@ export default async function AnalyticsPage({
               {snapshot.averages.perMonth.hours.toFixed(2)} hrs avg
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Phase 4 diagnostics
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">
+              Shift profitability breakdowns
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500">
+            Weighted rates, share, and sample size
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-3">
+          {[
+            { label: "By role", rows: snapshot.profitability.byRole },
+            { label: "By location", rows: snapshot.profitability.byLocation },
+            {
+              label: "By shift type",
+              rows: snapshot.profitability.byShiftType,
+            },
+          ].map((group) => (
+            <div
+              key={group.label}
+              className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4"
+            >
+              <p className="text-sm font-semibold text-slate-900">
+                {group.label}
+              </p>
+              {group.rows.length > 0 ? (
+                <ul className="mt-3 space-y-2">
+                  {group.rows.slice(0, 5).map((row) => (
+                    <li
+                      key={`${group.label}-${row.label}`}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-slate-900">
+                          {row.label}
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          {row.shifts} {row.shifts === 1 ? "shift" : "shifts"}
+                        </p>
+                      </div>
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-slate-600">
+                        <div>
+                          <p className="text-slate-500">Total</p>
+                          <p className="font-medium text-slate-900">
+                            {formatCurrency(row.totalEarned)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Hourly</p>
+                          <p className="font-medium text-slate-900">
+                            {formatCurrency(row.weightedHourlyRate)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Share</p>
+                          <p className="font-medium text-slate-900">
+                            {formatPct(row.contributionPct)}
+                          </p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-slate-600">
+                  Not enough shifts in this view yet.
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
