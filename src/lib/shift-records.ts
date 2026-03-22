@@ -79,6 +79,7 @@ export type DashboardSnapshot = ShiftSnapshot & {
     byLocation: AverageBreakdownRow[];
     byShiftType: AverageBreakdownRow[];
   };
+  topCombinations: TopCombinationRow[];
   profitability: {
     byRole: ProfitabilityBreakdownRow[];
     byLocation: ProfitabilityBreakdownRow[];
@@ -145,6 +146,18 @@ export type PaceDiagnostics = {
   daysInMonth: number;
   daysRemaining: number;
   elapsedPct: number;
+};
+
+export type TopCombinationRow = {
+  label: string;
+  role: string;
+  location: string;
+  shiftType: string;
+  shifts: number;
+  medianEarned: number;
+  medianHourlyRate: number;
+  avgEarned: number;
+  avgHourlyRate: number;
 };
 
 export type AverageBreakdownRow = {
@@ -257,6 +270,61 @@ function getWeekStartsOn(
 
 function normalizeBreakdownLabel(value: string | null) {
   return value && value.trim().length > 0 ? value.trim() : "Unspecified";
+}
+
+function median(sortedValues: number[]) {
+  if (sortedValues.length === 0) return 0;
+  const mid = Math.floor(sortedValues.length / 2);
+  return sortedValues.length % 2 === 1
+    ? sortedValues[mid]
+    : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
+}
+
+function buildTopCombinations(
+  rows: ShiftRecord[],
+  minShifts = 2,
+  limit = 8,
+): TopCombinationRow[] {
+  const grouped = new Map<
+    string,
+    { role: string; location: string; shiftType: string; rows: ShiftRecord[] }
+  >();
+
+  for (const row of rows) {
+    const role = normalizeBreakdownLabel(row.role);
+    const location = normalizeBreakdownLabel(row.location);
+    const shiftType = normalizeBreakdownLabel(row.shiftType);
+    const key = `${role}|||${location}|||${shiftType}`;
+    const current = grouped.get(key) ?? { role, location, shiftType, rows: [] };
+    current.rows.push(row);
+    grouped.set(key, current);
+  }
+
+  return Array.from(grouped.values())
+    .filter((group) => group.rows.length >= minShifts)
+    .map((group) => {
+      const earned = [...group.rows.map((r) => r.totalEarned)].sort(
+        (a, b) => a - b,
+      );
+      const rates = [...group.rows.map((r) => r.hourlyRate)].sort(
+        (a, b) => a - b,
+      );
+      const totalEarned = group.rows.reduce((s, r) => s + r.totalEarned, 0);
+      const totalRate = group.rows.reduce((s, r) => s + r.hourlyRate, 0);
+      return {
+        label: `${group.role} @ ${group.location} · ${group.shiftType}`,
+        role: group.role,
+        location: group.location,
+        shiftType: group.shiftType,
+        shifts: group.rows.length,
+        medianEarned: round(median(earned)),
+        medianHourlyRate: round(median(rates)),
+        avgEarned: round(totalEarned / group.rows.length),
+        avgHourlyRate: round(totalRate / group.rows.length),
+      };
+    })
+    .sort((a, b) => b.medianEarned - a.medianEarned)
+    .slice(0, limit);
 }
 
 function buildAverageBreakdown(
@@ -908,9 +976,7 @@ export function buildDashboardSnapshot(
   const expectedByToday = round(meanDailyEarnedRaw * daysElapsed);
   const paceGap = round(monthTotalEarned - expectedByToday);
   const paceGapPct =
-    expectedByToday > 0
-      ? round((paceGap / expectedByToday) * 100)
-      : 0;
+    expectedByToday > 0 ? round((paceGap / expectedByToday) * 100) : 0;
   const projectedMonthTotal = round(
     monthTotalEarned + meanDailyEarnedRaw * daysRemaining,
   );
@@ -937,6 +1003,7 @@ export function buildDashboardSnapshot(
     insights,
     bestWeekdayRate: bestWeekdayEntry?.hourlyRate ?? 0,
     averages,
+    topCombinations: buildTopCombinations(workingRows),
     profitability: {
       byRole: buildProfitabilityBreakdown(
         workingRows,

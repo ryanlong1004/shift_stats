@@ -960,6 +960,71 @@ export default async function AnalyticsPage({
               Phase 4 diagnostics
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">
+              Top combinations
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500">
+            Role × location × shift type · median take-home
+          </p>
+        </div>
+
+        {snapshot.topCombinations.length > 0 ? (
+          <ul className="mt-4 space-y-2">
+            {snapshot.topCombinations.map((combo, index) => (
+              <li
+                key={combo.label}
+                className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-3"
+              >
+                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {combo.label}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {combo.shifts} {combo.shifts === 1 ? "shift" : "shifts"}
+                  </p>
+                </div>
+                <div className="flex flex-shrink-0 gap-6 text-xs">
+                  <div className="text-right">
+                    <p className="text-slate-500">Median earned</p>
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(combo.medianEarned)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-slate-500">Median $/hr</p>
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(combo.medianHourlyRate)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-slate-500">Avg earned</p>
+                    <p className="font-medium text-slate-700">
+                      {formatCurrency(combo.avgEarned)}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-slate-600">
+            Not enough shifts with matching role, location, and shift type to
+            rank combinations yet. Log at least 2 shifts with the same
+            combination to see them ranked here.
+          </p>
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Phase 4 diagnostics
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">
               Shift profitability breakdowns
             </h2>
           </div>
