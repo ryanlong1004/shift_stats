@@ -198,30 +198,6 @@ export function buildDashboardSnapshot(
 ): DashboardSnapshot {
   const base = buildShiftSnapshot(rows);
 
-  if (rows.length === 0) {
-    return {
-      ...base,
-      weekTotalEarned: 0,
-      monthTotalEarned: 0,
-      prevWeekTotalEarned: 0,
-      prevMonthTotalEarned: 0,
-      recentShifts: [],
-      earningsSeries: [],
-      weekdaySeries: [],
-      insights: [
-        "No shifts have been recorded yet.",
-        "Add your first shift to unlock weekly and monthly comparisons.",
-        "Once data exists, this page will calculate hourly trends and best weekdays.",
-      ],
-      bestWeekdayRate: 0,
-      averages: {
-        perShift: { earned: 0, hours: 0 },
-        perWeek: { earned: 0, hours: 0 },
-        perMonth: { earned: 0, hours: 0 },
-      },
-    };
-  }
-
   const sortedRows = [...rows].sort((left, right) =>
     right.shiftDate.localeCompare(left.shiftDate),
   );
@@ -232,7 +208,7 @@ export function buildDashboardSnapshot(
     ? [...allRows].sort((l, r) => r.shiftDate.localeCompare(l.shiftDate))
     : sortedRows;
 
-  const referenceDate = parseISO(sortedRows[0].shiftDate);
+  const referenceDate = new Date();
   const weekStartsOn = getWeekStartsOn(weekStartAnchor);
   const weekStart = startOfWeek(referenceDate, { weekStartsOn });
   const monthStart = startOfMonth(referenceDate);
