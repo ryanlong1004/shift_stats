@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { DeleteShiftButton } from "@/components/delete-shift-button";
-import { formatCurrency, formatDecimal } from "@/lib/formatters";
+import { formatCurrency, formatDecimal, formatWeekday } from "@/lib/formatters";
 import { buildEditShiftHref } from "@/lib/shifts-query-state";
 import type { ShiftRecord } from "@/lib/shift-records";
 
@@ -35,6 +35,9 @@ export function ShiftHistoryTable({
                 </p>
                 <p className="text-lg font-semibold text-slate-950">
                   {row.shiftDate}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {formatWeekday(row.shiftDate)}
                 </p>
               </div>
               <div className="text-right">
@@ -117,6 +120,7 @@ export function ShiftHistoryTable({
           <thead className="bg-slate-950 text-white">
             <tr>
               <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium">Day</th>
               <th className="px-4 py-3 font-medium">Hours</th>
               <th className="px-4 py-3 font-medium">Total</th>
               <th className="px-4 py-3 font-medium">$/hr</th>
@@ -134,6 +138,9 @@ export function ShiftHistoryTable({
               <tr key={row.id} className="border-t border-slate-200 align-top">
                 <td className="px-4 py-3 font-medium text-slate-950">
                   {row.shiftDate}
+                </td>
+                <td className="px-4 py-3 text-slate-700">
+                  {formatWeekday(row.shiftDate)}
                 </td>
                 <td className="px-4 py-3 text-slate-700">
                   {formatDecimal(row.hoursWorked)}
