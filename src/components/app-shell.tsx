@@ -117,22 +117,23 @@ export function AppShell({
         </aside>
 
         <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-20 border-b border-slate-900/10 bg-white/75 px-5 py-4 backdrop-blur lg:px-8">
+          <header className="sticky top-0 z-20 border-b border-slate-900/10 bg-white/75 px-5 py-3 backdrop-blur lg:px-8 lg:py-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                   Shiftstats
                 </p>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 hidden text-sm text-slate-600 lg:block">
                   Signed in as {currentUserEmail ?? "unknown user"}.
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Link
                   href="/shifts/new"
-                  className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800 sm:px-4"
                 >
-                  Add Shift
+                  <PlusCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Add Shift</span>
                 </Link>
                 <SignOutButton />
               </div>
@@ -141,7 +142,7 @@ export function AppShell({
 
           <div className="flex-1 px-5 py-6 lg:px-8 lg:py-8">{children}</div>
 
-          <nav className="sticky bottom-0 z-20 flex gap-1 overflow-x-auto border-t border-slate-900/10 bg-white/90 px-2 py-2 backdrop-blur lg:hidden">
+          <nav className="sticky bottom-0 z-20 flex border-t border-slate-900/10 bg-white/90 px-1 py-1 backdrop-blur lg:hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeHref === item.href;
@@ -150,7 +151,7 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex min-w-[44px] flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium ${
+                  className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium ${
                     isActive ? "bg-slate-950 text-white" : "text-slate-600"
                   }`}
                 >
