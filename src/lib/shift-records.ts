@@ -1,4 +1,5 @@
 import {
+  differenceInCalendarDays,
   endOfMonth,
   format,
   isSameMonth,
@@ -81,6 +82,30 @@ export type DashboardSnapshot = ShiftSnapshot & {
     byShiftType: ProfitabilityBreakdownRow[];
   };
   outliers: OutlierDiagnostics;
+  baselines: RollingBaselineDiagnostics;
+};
+
+export type RollingBaselineWindow = {
+  windowDays: number;
+  shifts: number;
+  totalEarned: number;
+  totalHours: number;
+  dailyAvgEarned: number;
+  dailyAvgHours: number;
+};
+
+export type RollingBaselineDiagnostics = {
+  currentPeriod: {
+    shifts: number;
+    spanDays: number;
+    dailyAvgEarned: number;
+    dailyAvgHours: number;
+  };
+  windows: RollingBaselineWindow[];
+  varianceVs30: {
+    earnedPct: number;
+    hoursPct: number;
+  };
 };
 
 export type ProfitabilityBreakdownRow = {
@@ -242,6 +267,43 @@ function buildProfitabilityBreakdown(
 
     return left.label.localeCompare(right.label);
   });
+}
+
+function getPctVariance(value: number, baseline: number) {
+  if (baseline <= 0) {
+    return 0;
+  }
+
+  return round(((value - baseline) / baseline) * 100);
+}
+
+function getRollingWindowStats(
+  rows: ShiftRecord[],
+  referenceDate: Date,
+  windowDays: number,
+): RollingBaselineWindow {
+  const startDate = subDays(referenceDate, windowDays - 1);
+  const windowRows = rows.filter((row) =>
+    isWithinInterval(parseISO(row.shiftDate), {
+      start: startDate,
+      end: referenceDate,
+    }),
+  );
+  const totalEarned = round(
+    windowRows.reduce((sum, row) => sum + row.totalEarned, 0),
+  );
+  const totalHours = round(
+    windowRows.reduce((sum, row) => sum + row.hoursWorked, 0),
+  );
+
+  return {
+    windowDays,
+    shifts: windowRows.length,
+    totalEarned,
+    totalHours,
+    dailyAvgEarned: round(totalEarned / windowDays),
+    dailyAvgHours: round(totalHours / windowDays),
+  };
 }
 
 function quantile(sortedValues: number[], q: number) {
@@ -487,6 +549,7 @@ export function buildDashboardSnapshot(
   const outlierIqrMultiplier = sanitizeOutlierIqrMultiplier(
     options.outlierIqrMultiplier,
   );
+  const referenceDate = new Date();
   const sortedRows = [...rows].sort((left, right) =>
     right.shiftDate.localeCompare(left.shiftDate),
   );
@@ -494,8 +557,7 @@ export function buildDashboardSnapshot(
     diagnostics: rawOutlierDiagnostics,
     inlierRows,
     anomalyReasonById,
-  } =
-    getOutlierDiagnostics(sortedRows, outlierIqrMultiplier);
+  } = getOutlierDiagnostics(sortedRows, outlierIqrMultiplier);
   const excludeOutliers = options.excludeOutliers === true;
   const workingRows = excludeOutliers ? inlierRows : sortedRows;
   const base = buildShiftSnapshot(workingRows);
@@ -509,7 +571,6 @@ export function buildDashboardSnapshot(
     ? excludeOutlierRows(periodRowsRaw, outlierIqrMultiplier)
     : periodRowsRaw;
 
-  const referenceDate = new Date();
   const weekStartsOn = getWeekStartsOn(weekStartAnchor);
   const weekStart = startOfWeek(referenceDate, { weekStartsOn });
   const monthStart = startOfMonth(referenceDate);
@@ -644,6 +705,23 @@ export function buildDashboardSnapshot(
       : "No best shift is available until at least one shift exists.",
   ];
 
+  const baselineWindows = [7, 14, 30].map((windowDays) =>
+    getRollingWindowStats(workingRows, referenceDate, windowDays),
+  );
+  const baseline30 = baselineWindows.find((window) => window.windowDays === 30);
+  const currentSpanDays =
+    workingRows.length > 0
+      ? Math.max(
+          1,
+          differenceInCalendarDays(
+            parseISO(workingRows[0].shiftDate),
+            parseISO(workingRows[workingRows.length - 1].shiftDate),
+          ) + 1,
+        )
+      : 1;
+  const currentPeriodDailyAvgEarned = round(base.totalEarned / currentSpanDays);
+  const currentPeriodDailyAvgHours = round(base.totalHours / currentSpanDays);
+
   return {
     ...base,
     weekTotalEarned,
@@ -686,6 +764,25 @@ export function buildDashboardSnapshot(
     outliers: {
       ...rawOutlierDiagnostics,
       excluded: excludeOutliers,
+    },
+    baselines: {
+      currentPeriod: {
+        shifts: base.totalShifts,
+        spanDays: currentSpanDays,
+        dailyAvgEarned: currentPeriodDailyAvgEarned,
+        dailyAvgHours: currentPeriodDailyAvgHours,
+      },
+      windows: baselineWindows,
+      varianceVs30: {
+        earnedPct: getPctVariance(
+          currentPeriodDailyAvgEarned,
+          baseline30?.dailyAvgEarned ?? 0,
+        ),
+        hoursPct: getPctVariance(
+          currentPeriodDailyAvgHours,
+          baseline30?.dailyAvgHours ?? 0,
+        ),
+      },
     },
   };
 }

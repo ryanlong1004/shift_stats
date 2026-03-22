@@ -53,6 +53,14 @@ function formatPct(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
+function formatSignedPct(value: number) {
+  if (value > 0) {
+    return `+${value.toFixed(1)}%`;
+  }
+
+  return `${value.toFixed(1)}%`;
+}
+
 function formatOutlierBand(band: { lower: number; upper: number } | null) {
   if (!band) {
     return "Not enough variation";
@@ -420,6 +428,59 @@ export default async function AnalyticsPage({
             <p className="mt-1 text-sm text-slate-600">
               {snapshot.averages.perMonth.hours.toFixed(2)} hrs avg
             </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Phase 4 diagnostics
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">
+              Rolling baselines
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500">Daily averages and variance</p>
+        </div>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-3">
+          {snapshot.baselines.windows.map((window) => (
+            <div
+              key={window.windowDays}
+              className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4"
+            >
+              <p className="text-xs font-medium text-slate-500">
+                Last {window.windowDays} days
+              </p>
+              <p className="mt-2 text-xl font-semibold text-slate-950">
+                {formatCurrency(window.dailyAvgEarned)} / day
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                {window.dailyAvgHours.toFixed(2)} hrs/day • {window.shifts}{" "}
+                shifts
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
+          <p className="text-xs font-medium text-slate-500">Current view baseline</p>
+          <p className="mt-2 text-lg font-semibold text-slate-950">
+            {formatCurrency(snapshot.baselines.currentPeriod.dailyAvgEarned)} / day
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            Across {snapshot.baselines.currentPeriod.spanDays} days and{" "}
+            {snapshot.baselines.currentPeriod.shifts} shifts
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-700">
+              Earnings vs 30d: {formatSignedPct(snapshot.baselines.varianceVs30.earnedPct)}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-700">
+              Hours vs 30d: {formatSignedPct(snapshot.baselines.varianceVs30.hoursPct)}
+            </span>
           </div>
         </div>
       </section>
