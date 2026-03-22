@@ -28,7 +28,29 @@ type AnalyticsPageSearchParams = {
   shiftType?: string;
   excludeOutliers?: string;
   outlierSensitivity?: string;
+  forecastScenario?: string;
 };
+
+const FORECAST_SCENARIOS = [
+  {
+    value: "base",
+    label: "Base case",
+    expectedMultiplier: 1,
+    volatilityMultiplier: 1,
+  },
+  {
+    value: "conservative",
+    label: "Conservative",
+    expectedMultiplier: 0.9,
+    volatilityMultiplier: 1.15,
+  },
+  {
+    value: "aggressive",
+    label: "Aggressive",
+    expectedMultiplier: 1.1,
+    volatilityMultiplier: 0.9,
+  },
+] as const;
 
 const OUTLIER_SENSITIVITY_OPTIONS = [
   { value: "1", label: "Strict (1.0x IQR)", multiplier: 1 },
@@ -59,6 +81,10 @@ function formatSignedPct(value: number) {
   }
 
   return `${value.toFixed(1)}%`;
+}
+
+function round(value: number) {
+  return Number(value.toFixed(2));
 }
 
 function getConfidenceBadgeClass(label: "Low" | "Medium" | "High") {
@@ -112,6 +138,10 @@ export default async function AnalyticsPage({
       (option) => option.value === resolvedSearchParams.outlierSensitivity,
     ) ?? OUTLIER_SENSITIVITY_OPTIONS[1];
   const outlierIqrMultiplier = selectedOutlierSensitivity.multiplier;
+  const selectedForecastScenario =
+    FORECAST_SCENARIOS.find(
+      (option) => option.value === resolvedSearchParams.forecastScenario,
+    ) ?? FORECAST_SCENARIOS[0];
 
   const filters: ShiftListFilters = {
     preset,
@@ -205,6 +235,29 @@ export default async function AnalyticsPage({
       value: selectedOutlierSensitivity.label,
     });
   }
+
+  if (selectedForecastScenario.value !== "base") {
+    activeFilters.push({
+      label: "Forecast",
+      value: selectedForecastScenario.label,
+    });
+  }
+
+  const scenarioExpectedProjection = round(
+    snapshot.forecast.projected.expected *
+      selectedForecastScenario.expectedMultiplier,
+  );
+  const scenarioVolatilityProjection = round(
+    snapshot.forecast.dailyVolatility *
+      Math.sqrt(snapshot.forecast.horizonDays) *
+      selectedForecastScenario.volatilityMultiplier,
+  );
+  const scenarioLowProjection = round(
+    Math.max(0, scenarioExpectedProjection - scenarioVolatilityProjection),
+  );
+  const scenarioHighProjection = round(
+    scenarioExpectedProjection + scenarioVolatilityProjection,
+  );
 
   return (
     <div className="space-y-6">
@@ -341,6 +394,21 @@ export default async function AnalyticsPage({
               className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
             >
               {OUTLIER_SENSITIVITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+            Forecast scenario
+            <select
+              name="forecastScenario"
+              defaultValue={selectedForecastScenario.value}
+              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
+            >
+              {FORECAST_SCENARIOS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -521,19 +589,19 @@ export default async function AnalyticsPage({
           <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
             <p className="text-xs font-medium text-slate-500">Low estimate</p>
             <p className="mt-2 text-xl font-semibold text-slate-950">
-              {formatCurrency(snapshot.forecast.projected.low)}
+              {formatCurrency(scenarioLowProjection)}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
             <p className="text-xs font-medium text-slate-500">Expected</p>
             <p className="mt-2 text-xl font-semibold text-slate-950">
-              {formatCurrency(snapshot.forecast.projected.expected)}
+              {formatCurrency(scenarioExpectedProjection)}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
             <p className="text-xs font-medium text-slate-500">High estimate</p>
             <p className="mt-2 text-xl font-semibold text-slate-950">
-              {formatCurrency(snapshot.forecast.projected.high)}
+              {formatCurrency(scenarioHighProjection)}
             </p>
           </div>
         </div>
@@ -563,6 +631,9 @@ export default async function AnalyticsPage({
           </p>
           <p className="mt-1 text-sm text-slate-700">
             Shifts in window: {snapshot.forecast.sample.shiftsInWindow}
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            Scenario: {selectedForecastScenario.label}
           </p>
         </div>
       </section>
