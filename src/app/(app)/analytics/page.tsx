@@ -598,95 +598,6 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Averages
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
-            <p className="text-xs font-medium text-slate-500">Per shift</p>
-            <p className="mt-2 text-xl font-semibold text-slate-950">
-              {formatCurrency(snapshot.averages.perShift.earned)}
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {snapshot.averages.perShift.hours.toFixed(2)} hrs avg
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
-            <p className="text-xs font-medium text-slate-500">Per week</p>
-            <p className="mt-2 text-xl font-semibold text-slate-950">
-              {formatCurrency(snapshot.averages.perWeek.earned)}
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {snapshot.averages.perWeek.hours.toFixed(2)} hrs avg
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
-            <p className="text-xs font-medium text-slate-500">Per month</p>
-            <p className="mt-2 text-xl font-semibold text-slate-950">
-              {formatCurrency(snapshot.averages.perMonth.earned)}
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {snapshot.averages.perMonth.hours.toFixed(2)} hrs avg
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-4 xl:grid-cols-3">
-          {[
-            { label: "By role", rows: snapshot.averages.byRole },
-            { label: "By location", rows: snapshot.averages.byLocation },
-            { label: "By shift type", rows: snapshot.averages.byShiftType },
-          ].map((group) => (
-            <div
-              key={group.label}
-              className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4"
-            >
-              <p className="text-sm font-semibold text-slate-900">
-                {group.label}
-              </p>
-              {group.rows.length > 0 ? (
-                <ul className="mt-3 space-y-2">
-                  {group.rows.slice(0, 5).map((row) => (
-                    <li
-                      key={`${group.label}-${row.label}`}
-                      className="rounded-xl border border-slate-200 bg-white px-3 py-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-slate-900">
-                          {row.label}
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          {row.shifts} {row.shifts === 1 ? "shift" : "shifts"}
-                        </p>
-                      </div>
-                      <div className="mt-2 flex gap-6 text-xs">
-                        <div>
-                          <p className="text-slate-500">Avg earned</p>
-                          <p className="font-medium text-slate-900">
-                            {formatCurrency(row.avgEarned)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Avg hours</p>
-                          <p className="font-medium text-slate-900">
-                            {row.avgHours.toFixed(2)} hrs
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-slate-600">
-                  Not enough shifts in this view yet.
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
@@ -785,6 +696,95 @@ export default async function AnalyticsPage({
               }}
             />
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Averages
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Per shift</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.averages.perShift.earned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.averages.perShift.hours.toFixed(2)} hrs avg
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Per week</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.averages.perWeek.earned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.averages.perWeek.hours.toFixed(2)} hrs avg
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Per month</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.averages.perMonth.earned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.averages.perMonth.hours.toFixed(2)} hrs avg
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-3">
+          {[
+            { label: "By role", rows: snapshot.averages.byRole },
+            { label: "By location", rows: snapshot.averages.byLocation },
+            { label: "By shift type", rows: snapshot.averages.byShiftType },
+          ].map((group) => (
+            <div
+              key={group.label}
+              className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4"
+            >
+              <p className="text-sm font-semibold text-slate-900">
+                {group.label}
+              </p>
+              {group.rows.length > 0 ? (
+                <ul className="mt-3 space-y-2">
+                  {group.rows.slice(0, 5).map((row) => (
+                    <li
+                      key={`${group.label}-${row.label}`}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-slate-900">
+                          {row.label}
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          {row.shifts} {row.shifts === 1 ? "shift" : "shifts"}
+                        </p>
+                      </div>
+                      <div className="mt-2 flex gap-6 text-xs">
+                        <div>
+                          <p className="text-slate-500">Avg earned</p>
+                          <p className="font-medium text-slate-900">
+                            {formatCurrency(row.avgEarned)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Avg hours</p>
+                          <p className="font-medium text-slate-900">
+                            {row.avgHours.toFixed(2)} hrs
+                          </p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-slate-600">
+                  Not enough shifts in this view yet.
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
