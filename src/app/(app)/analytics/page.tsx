@@ -61,6 +61,18 @@ function formatSignedPct(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
+function getConfidenceBadgeClass(label: "Low" | "Medium" | "High") {
+  if (label === "High") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+
+  if (label === "Medium") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+
+  return "border-rose-200 bg-rose-50 text-rose-700";
+}
+
 function formatOutlierBand(band: { lower: number; upper: number } | null) {
   if (!band) {
     return "Not enough variation";
@@ -500,7 +512,9 @@ export default async function AnalyticsPage({
               7-day forecast
             </h2>
           </div>
-          <p className="text-xs text-slate-500">Based on the last 30 calendar days</p>
+          <p className="text-xs text-slate-500">
+            Based on the last 30 calendar days
+          </p>
         </div>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-3">
@@ -525,12 +539,30 @@ export default async function AnalyticsPage({
         </div>
 
         <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
-          <p className="text-xs font-medium text-slate-500">Model inputs</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-medium text-slate-500">Model inputs</p>
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${getConfidenceBadgeClass(snapshot.forecast.confidence.label)}`}
+            >
+              {snapshot.forecast.confidence.label} confidence (
+              {snapshot.forecast.confidence.score.toFixed(0)})
+            </span>
+          </div>
           <p className="mt-2 text-sm text-slate-700">
-            Mean daily earnings: {formatCurrency(snapshot.forecast.meanDailyEarned)}
+            Mean daily earnings:{" "}
+            {formatCurrency(snapshot.forecast.meanDailyEarned)}
           </p>
           <p className="mt-1 text-sm text-slate-700">
-            Daily volatility: {formatCurrency(snapshot.forecast.dailyVolatility)}
+            Daily volatility:{" "}
+            {formatCurrency(snapshot.forecast.dailyVolatility)}
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            Coverage: {snapshot.forecast.sample.activeDays}/
+            {snapshot.forecast.sample.windowDays} active days (
+            {formatPct(snapshot.forecast.sample.activeDayCoveragePct)})
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            Shifts in window: {snapshot.forecast.sample.shiftsInWindow}
           </p>
         </div>
       </section>

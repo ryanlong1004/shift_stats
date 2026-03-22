@@ -90,6 +90,16 @@ export type ForecastDiagnostics = {
   horizonDays: number;
   meanDailyEarned: number;
   dailyVolatility: number;
+  sample: {
+    windowDays: number;
+    activeDays: number;
+    activeDayCoveragePct: number;
+    shiftsInWindow: number;
+  };
+  confidence: {
+    score: number;
+    label: "Low" | "Medium" | "High";
+  };
   projected: {
     low: number;
     expected: number;
@@ -351,9 +361,20 @@ function getStdDev(values: number[], mean: number) {
   }
 
   const variance =
-    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
-    values.length;
+    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
+}
+
+function getForecastConfidence(score: number): "Low" | "Medium" | "High" {
+  if (score >= 75) {
+    return "High";
+  }
+
+  if (score >= 45) {
+    return "Medium";
+  }
+
+  return "Low";
 }
 
 function quantile(sortedValues: number[], q: number) {
@@ -778,13 +799,27 @@ export function buildDashboardSnapshot(
     referenceDate,
     forecastWindowDays,
   );
+  const forecastWindowStart = subDays(referenceDate, forecastWindowDays - 1);
+  const shiftsInWindow = workingRows.filter((row) =>
+    isWithinInterval(parseISO(row.shiftDate), {
+      start: forecastWindowStart,
+      end: referenceDate,
+    }),
+  ).length;
+  const activeDays = dailyEarnedSeries.filter((value) => value > 0).length;
+  const activeDayCoveragePct = round((activeDays / forecastWindowDays) * 100);
+  const coverageScore = (activeDays / forecastWindowDays) * 70;
+  const densityScore = Math.min(shiftsInWindow / forecastWindowDays, 1) * 30;
+  const confidenceScore = round(coverageScore + densityScore);
   const meanDailyEarnedRaw = getMean(dailyEarnedSeries);
   const dailyVolatilityRaw = getStdDev(dailyEarnedSeries, meanDailyEarnedRaw);
   const expectedProjection = round(meanDailyEarnedRaw * forecastHorizonDays);
   const volatilityProjection = round(
     dailyVolatilityRaw * Math.sqrt(forecastHorizonDays),
   );
-  const lowProjection = round(Math.max(0, expectedProjection - volatilityProjection));
+  const lowProjection = round(
+    Math.max(0, expectedProjection - volatilityProjection),
+  );
   const highProjection = round(expectedProjection + volatilityProjection);
 
   return {
@@ -853,6 +888,16 @@ export function buildDashboardSnapshot(
       horizonDays: forecastHorizonDays,
       meanDailyEarned: round(meanDailyEarnedRaw),
       dailyVolatility: round(dailyVolatilityRaw),
+      sample: {
+        windowDays: forecastWindowDays,
+        activeDays,
+        activeDayCoveragePct,
+        shiftsInWindow,
+      },
+      confidence: {
+        score: confidenceScore,
+        label: getForecastConfidence(confidenceScore),
+      },
       projected: {
         low: lowProjection,
         expected: expectedProjection,
