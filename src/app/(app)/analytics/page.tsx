@@ -116,6 +116,55 @@ function formatOutlierBand(band: { lower: number; upper: number } | null) {
   return `${formatCurrency(displayLowerBound)} to ${formatCurrency(band.upper)}`;
 }
 
+function getForecastSparkline(
+  history: number[],
+  projectedDaily: number,
+  horizonDays: number,
+) {
+  const width = 640;
+  const height = 140;
+  const padding = 12;
+  const projectedPoints = Math.max(horizonDays, 1);
+  const projectedSeries = Array.from({ length: projectedPoints }, () =>
+    round(projectedDaily),
+  );
+  const combined = [...history, ...projectedSeries];
+  const maxValue = Math.max(...combined, 1);
+  const minValue = Math.min(...combined, 0);
+  const range = Math.max(maxValue - minValue, 1);
+
+  const toPoint = (value: number, index: number, total: number) => {
+    const x =
+      total <= 1
+        ? padding
+        : padding + (index / (total - 1)) * (width - padding * 2);
+    const y =
+      height - padding - ((value - minValue) / range) * (height - padding * 2);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  };
+
+  const historyPoints = history.map((value, index) =>
+    toPoint(value, index, combined.length),
+  );
+  const projectionPoints = projectedSeries.map((value, index) =>
+    toPoint(value, history.length + index, combined.length),
+  );
+
+  const splitIndex = Math.max(history.length - 1, 0);
+  const splitX =
+    combined.length <= 1
+      ? padding
+      : padding + (splitIndex / (combined.length - 1)) * (width - padding * 2);
+
+  return {
+    width,
+    height,
+    splitX,
+    historyPath: historyPoints.join(" "),
+    projectionPath: projectionPoints.join(" "),
+  };
+}
+
 export default async function AnalyticsPage({
   searchParams,
 }: {
@@ -276,6 +325,15 @@ export default async function AnalyticsPage({
   );
   const scenarioHighProjection = round(
     scenarioExpectedProjection + scenarioVolatilityProjection,
+  );
+  const scenarioProjectedDaily =
+    snapshot.forecast.horizonDays > 0
+      ? scenarioExpectedProjection / snapshot.forecast.horizonDays
+      : 0;
+  const sparkline = getForecastSparkline(
+    snapshot.forecast.historyDailyEarned,
+    scenarioProjectedDaily,
+    snapshot.forecast.horizonDays,
   );
 
   return (
@@ -668,6 +726,44 @@ export default async function AnalyticsPage({
           </p>
           <p className="mt-1 text-sm text-slate-700">
             Scenario: {selectedForecastScenario.label}
+          </p>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
+          <p className="text-xs font-medium text-slate-500">
+            Trend with projection
+          </p>
+          <svg
+            viewBox={`0 0 ${sparkline.width} ${sparkline.height}`}
+            className="mt-3 h-28 w-full"
+            role="img"
+            aria-label="Forecast trend sparkline"
+          >
+            <line
+              x1={sparkline.splitX}
+              y1={8}
+              x2={sparkline.splitX}
+              y2={sparkline.height - 8}
+              stroke="#cbd5e1"
+              strokeDasharray="4 4"
+            />
+            <polyline
+              fill="none"
+              stroke="#0f172a"
+              strokeWidth="2.5"
+              points={sparkline.historyPath}
+            />
+            <polyline
+              fill="none"
+              stroke="#0ea5e9"
+              strokeWidth="2.5"
+              strokeDasharray="6 4"
+              points={sparkline.projectionPath}
+            />
+          </svg>
+          <p className="mt-2 text-xs text-slate-500">
+            Solid line: last 30 days. Dashed line: projected daily run-rate for
+            the selected horizon.
           </p>
         </div>
       </section>

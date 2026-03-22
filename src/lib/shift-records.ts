@@ -90,6 +90,7 @@ export type ForecastDiagnostics = {
   horizonDays: number;
   meanDailyEarned: number;
   dailyVolatility: number;
+  historyDailyEarned: number[];
   sample: {
     windowDays: number;
     activeDays: number;
@@ -899,6 +900,7 @@ export function buildDashboardSnapshot(
       horizonDays: forecastHorizonDays,
       meanDailyEarned: round(meanDailyEarnedRaw),
       dailyVolatility: round(dailyVolatilityRaw),
+      historyDailyEarned: dailyEarnedSeries,
       sample: {
         windowDays: forecastWindowDays,
         activeDays,
