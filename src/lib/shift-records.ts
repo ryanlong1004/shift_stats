@@ -87,6 +87,7 @@ export type DashboardSnapshot = ShiftSnapshot & {
   outliers: OutlierDiagnostics;
   baselines: RollingBaselineDiagnostics;
   forecast: ForecastDiagnostics;
+  pace: PaceDiagnostics;
 };
 
 export type ForecastDiagnostics = {
@@ -132,6 +133,18 @@ export type RollingBaselineDiagnostics = {
     earnedPct: number;
     hoursPct: number;
   };
+};
+
+export type PaceDiagnostics = {
+  monthToDateEarned: number;
+  expectedByToday: number;
+  paceGap: number;
+  paceGapPct: number;
+  projectedMonthTotal: number;
+  daysElapsed: number;
+  daysInMonth: number;
+  daysRemaining: number;
+  elapsedPct: number;
 };
 
 export type AverageBreakdownRow = {
@@ -889,6 +902,19 @@ export function buildDashboardSnapshot(
   );
   const highProjection = round(expectedProjection + volatilityProjection);
 
+  const daysElapsed = differenceInCalendarDays(referenceDate, monthStart) + 1;
+  const daysInMonth = differenceInCalendarDays(monthEnd, monthStart) + 1;
+  const daysRemaining = Math.max(0, daysInMonth - daysElapsed);
+  const expectedByToday = round(meanDailyEarnedRaw * daysElapsed);
+  const paceGap = round(monthTotalEarned - expectedByToday);
+  const paceGapPct =
+    expectedByToday > 0
+      ? round((paceGap / expectedByToday) * 100)
+      : 0;
+  const projectedMonthTotal = round(
+    monthTotalEarned + meanDailyEarnedRaw * daysRemaining,
+  );
+
   return {
     ...base,
     weekTotalEarned,
@@ -950,6 +976,17 @@ export function buildDashboardSnapshot(
           baseline30?.dailyAvgHours ?? 0,
         ),
       },
+    },
+    pace: {
+      monthToDateEarned: monthTotalEarned,
+      expectedByToday,
+      paceGap,
+      paceGapPct,
+      projectedMonthTotal,
+      daysElapsed,
+      daysInMonth,
+      daysRemaining,
+      elapsedPct: round((daysElapsed / daysInMonth) * 100),
     },
     forecast: {
       horizonDays: forecastHorizonDays,

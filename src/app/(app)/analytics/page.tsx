@@ -683,6 +683,108 @@ export default async function AnalyticsPage({
               Phase 4 diagnostics
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">
+              Earnings pace
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500">
+            Month-to-date vs model expectation
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">
+              Month-to-date actual
+            </p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.pace.monthToDateEarned)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Day {snapshot.pace.daysElapsed} of {snapshot.pace.daysInMonth}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">
+              Model-expected by today
+            </p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.pace.expectedByToday)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Based on 30-day daily mean
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Pace gap</p>
+            <p
+              className={`mt-2 text-xl font-semibold ${snapshot.pace.paceGap >= 0 ? "text-emerald-700" : "text-rose-700"}`}
+            >
+              {formatSignedCurrency(snapshot.pace.paceGap)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {formatSignedPct(snapshot.pace.paceGapPct)} vs expectation
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">
+              Projected month total
+            </p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.pace.projectedMonthTotal)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.pace.daysRemaining} days remaining
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
+          <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+            <span>Month progress</span>
+            <span>
+              {snapshot.pace.daysElapsed}/{snapshot.pace.daysInMonth} days (
+              {formatPct(snapshot.pace.elapsedPct)})
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-slate-800 transition-all"
+              style={{ width: `${snapshot.pace.elapsedPct}%` }}
+            />
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500">
+            <span>Earnings progress</span>
+            <span>
+              {snapshot.pace.projectedMonthTotal > 0
+                ? formatPct(
+                    Math.min(
+                      (snapshot.pace.monthToDateEarned /
+                        snapshot.pace.projectedMonthTotal) *
+                        100,
+                      100,
+                    ),
+                  )
+                : "—"}
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full transition-all ${snapshot.pace.paceGap >= 0 ? "bg-emerald-500" : "bg-rose-400"}`}
+              style={{
+                width: `${snapshot.pace.projectedMonthTotal > 0 ? Math.min((snapshot.pace.monthToDateEarned / snapshot.pace.projectedMonthTotal) * 100, 100) : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Phase 4 diagnostics
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">
               Rolling baselines
             </h2>
           </div>
