@@ -75,6 +75,9 @@ export type DashboardSnapshot = ShiftSnapshot & {
     perShift: { earned: number; hours: number };
     perWeek: { earned: number; hours: number };
     perMonth: { earned: number; hours: number };
+    byRole: AverageBreakdownRow[];
+    byLocation: AverageBreakdownRow[];
+    byShiftType: AverageBreakdownRow[];
   };
   profitability: {
     byRole: ProfitabilityBreakdownRow[];
@@ -129,6 +132,13 @@ export type RollingBaselineDiagnostics = {
     earnedPct: number;
     hoursPct: number;
   };
+};
+
+export type AverageBreakdownRow = {
+  label: string;
+  shifts: number;
+  avgEarned: number;
+  avgHours: number;
 };
 
 export type ProfitabilityBreakdownRow = {
@@ -234,6 +244,42 @@ function getWeekStartsOn(
 
 function normalizeBreakdownLabel(value: string | null) {
   return value && value.trim().length > 0 ? value.trim() : "Unspecified";
+}
+
+function buildAverageBreakdown(
+  rows: ShiftRecord[],
+  getLabel: (row: ShiftRecord) => string,
+): AverageBreakdownRow[] {
+  const grouped = new Map<
+    string,
+    { shifts: number; totalEarned: number; totalHours: number }
+  >();
+
+  for (const row of rows) {
+    const label = getLabel(row);
+    const current = grouped.get(label) ?? {
+      shifts: 0,
+      totalEarned: 0,
+      totalHours: 0,
+    };
+
+    grouped.set(label, {
+      shifts: current.shifts + 1,
+      totalEarned: current.totalEarned + row.totalEarned,
+      totalHours: current.totalHours + row.hoursWorked,
+    });
+  }
+
+  return Array.from(grouped.entries())
+    .map(([label, values]) => ({
+      label,
+      shifts: values.shifts,
+      avgEarned:
+        values.shifts > 0 ? round(values.totalEarned / values.shifts) : 0,
+      avgHours:
+        values.shifts > 0 ? round(values.totalHours / values.shifts) : 0,
+    }))
+    .sort((left, right) => right.avgEarned - left.avgEarned);
 }
 
 function buildProfitabilityBreakdown(
@@ -734,6 +780,15 @@ export function buildDashboardSnapshot(
       earned: round(base.totalEarned / numMonths),
       hours: round(base.totalHours / numMonths),
     },
+    byRole: buildAverageBreakdown(workingRows, (row) =>
+      normalizeBreakdownLabel(row.role),
+    ),
+    byLocation: buildAverageBreakdown(workingRows, (row) =>
+      normalizeBreakdownLabel(row.location),
+    ),
+    byShiftType: buildAverageBreakdown(workingRows, (row) =>
+      normalizeBreakdownLabel(row.shiftType),
+    ),
   };
 
   const weekdayBestShiftMap = new Map<string, ShiftRecord>();
