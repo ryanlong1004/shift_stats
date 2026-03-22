@@ -23,6 +23,7 @@ type AnalyticsPageSearchParams = {
   endDate?: string;
   location?: string;
   role?: string;
+  shiftType?: string;
 };
 
 const filterPresets = [
@@ -55,6 +56,7 @@ export default async function AnalyticsPage({
     endDate: resolvedSearchParams.endDate,
     location: resolvedSearchParams.location,
     role: resolvedSearchParams.role,
+    shiftType: resolvedSearchParams.shiftType,
     payPeriodSettings:
       preset === "pay"
         ? { type: settings.payPeriodType, anchor: settings.payPeriodAnchor }
@@ -63,7 +65,7 @@ export default async function AnalyticsPage({
 
   const [
     snapshot,
-    { locations, roles },
+    { locations, roles, shiftTypes },
     allRows,
     goals,
     prevSeries,
@@ -89,13 +91,13 @@ export default async function AnalyticsPage({
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
           Explore how earnings and hourly rates change by date, weekday,
-          location, and role.
+          location, role, and shift type.
         </p>
       </section>
 
       <form
         method="GET"
-        className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-5"
+        className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
       >
         <label className="space-y-2 text-sm text-slate-700">
           <span className="font-medium">Preset</span>
@@ -164,7 +166,23 @@ export default async function AnalyticsPage({
           </select>
         </label>
 
-        <div className="md:col-span-2 xl:col-span-5 flex items-center gap-3">
+        <label className="space-y-2 text-sm text-slate-700">
+          <span className="font-medium">Shift type</span>
+          <select
+            name="shiftType"
+            defaultValue={resolvedSearchParams.shiftType ?? ""}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-slate-900"
+          >
+            <option value="">All shift types</option>
+            {shiftTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="md:col-span-2 xl:col-span-6 flex items-center gap-3">
           <button
             type="submit"
             className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
@@ -212,6 +230,14 @@ export default async function AnalyticsPage({
           </p>
           <p className="mt-2 text-base font-medium text-slate-900">
             {resolvedSearchParams.role || "All"}
+          </p>
+        </div>
+        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Shift type
+          </p>
+          <p className="mt-2 text-base font-medium text-slate-900">
+            {resolvedSearchParams.shiftType || "All"}
           </p>
         </div>
       </div>

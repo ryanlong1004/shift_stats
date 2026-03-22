@@ -4,6 +4,7 @@ export type ShiftsPageSearchParams = {
   endDate?: string;
   location?: string;
   role?: string;
+  shiftType?: string;
   sortBy?: string;
   sortOrder?: string;
   page?: string;
@@ -69,6 +70,9 @@ function appendFilters(
   if (searchParams.role) {
     params.set("role", searchParams.role);
   }
+  if (searchParams.shiftType) {
+    params.set("shiftType", searchParams.shiftType);
+  }
 }
 
 export function buildShiftsHref(
@@ -102,6 +106,9 @@ export function buildPresetHref(
   }
   if (searchParams.role) {
     params.set("role", searchParams.role);
+  }
+  if (searchParams.shiftType) {
+    params.set("shiftType", searchParams.shiftType);
   }
 
   params.set("sortBy", state.sortBy);

@@ -10,6 +10,7 @@ type ExportShiftsButtonProps = {
     endDate?: string;
     location?: string;
     role?: string;
+    shiftType?: string;
   };
 };
 

@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       endDate?: string;
       location?: string;
       role?: string;
+      shiftType?: string;
       includeNotes?: boolean;
     };
 
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
       endDate: body.endDate,
       location: body.location,
       role: body.role,
+      shiftType: body.shiftType,
     };
 
     const rows = await listShiftRecords(filters);

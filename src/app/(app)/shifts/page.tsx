@@ -43,6 +43,7 @@ export default async function ShiftsPage({
     endDate: resolvedSearchParams.endDate,
     location: resolvedSearchParams.location,
     role: resolvedSearchParams.role,
+    shiftType: resolvedSearchParams.shiftType,
   };
 
   const [rows, allRows] = await Promise.all([
@@ -54,6 +55,9 @@ export default async function ShiftsPage({
   ) as string[];
   const roleOptions = Array.from(
     new Set(allRows.map((row) => row.role).filter(Boolean)),
+  ) as string[];
+  const shiftTypeOptions = Array.from(
+    new Set(allRows.map((row) => row.shiftType).filter(Boolean)),
   ) as string[];
 
   const sortBy = queryState.sortBy;
@@ -115,8 +119,8 @@ export default async function ShiftsPage({
             Shift history
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
-            Filter by time range, location, and role to quickly find the shifts
-            you need.
+            Filter by time range, location, role, and shift type to quickly find
+            the shifts you need.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -127,6 +131,7 @@ export default async function ShiftsPage({
               endDate: resolvedSearchParams.endDate,
               location: resolvedSearchParams.location,
               role: resolvedSearchParams.role,
+              shiftType: resolvedSearchParams.shiftType,
             }}
           />
           <Link
@@ -146,7 +151,7 @@ export default async function ShiftsPage({
 
       <form
         method="GET"
-        className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-5"
+        className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
       >
         <input type="hidden" name="sortBy" value={sortBy} />
         <input type="hidden" name="sortOrder" value={sortOrder} />
@@ -220,7 +225,23 @@ export default async function ShiftsPage({
           </select>
         </label>
 
-        <div className="md:col-span-2 xl:col-span-5 flex items-center gap-3">
+        <label className="space-y-2 text-sm text-slate-700">
+          <span className="font-medium">Shift type</span>
+          <select
+            name="shiftType"
+            defaultValue={resolvedSearchParams.shiftType ?? ""}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-slate-900"
+          >
+            <option value="">All shift types</option>
+            {shiftTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="md:col-span-2 xl:col-span-6 flex items-center gap-3">
           <button
             type="submit"
             className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"

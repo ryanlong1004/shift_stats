@@ -25,6 +25,7 @@ export async function GET(request: Request) {
       endDate: searchParams.get("endDate") ?? undefined,
       location: searchParams.get("location") ?? undefined,
       role: searchParams.get("role") ?? undefined,
+      shiftType: searchParams.get("shiftType") ?? undefined,
     };
     const rows = await listShiftRecords(filters);
     const snapshot = await getShiftSnapshot(filters);

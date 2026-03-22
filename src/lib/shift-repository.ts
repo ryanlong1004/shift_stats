@@ -35,6 +35,7 @@ export type ShiftListFilters = {
   endDate?: string;
   location?: string;
   role?: string;
+  shiftType?: string;
   payPeriodSettings?: {
     type: "weekly" | "biweekly";
     anchor: string; // day name e.g. "monday"
@@ -47,6 +48,7 @@ type NormalizedShiftListFilters = {
   endDate: string | null;
   location: string | null;
   role: string | null;
+  shiftType: string | null;
   payPeriodSettings?: ShiftListFilters["payPeriodSettings"];
 };
 
@@ -79,6 +81,7 @@ function normalizeFilters(
     endDate: normalizeDate(filters?.endDate),
     location: normalizeText(filters?.location),
     role: normalizeText(filters?.role),
+    shiftType: normalizeText(filters?.shiftType),
     payPeriodSettings: filters?.payPeriodSettings,
   };
 }
@@ -152,6 +155,7 @@ function applyFilters(rows: ShiftRecord[], filters?: ShiftListFilters) {
   const { startDate, endDate } = resolveDateRange(normalized);
   const location = normalized.location?.toLowerCase() ?? null;
   const role = normalized.role?.toLowerCase() ?? null;
+  const shiftType = normalized.shiftType?.toLowerCase() ?? null;
 
   return rows.filter((row) => {
     if (startDate && row.shiftDate < startDate) {
@@ -174,6 +178,14 @@ function applyFilters(rows: ShiftRecord[], filters?: ShiftListFilters) {
       const rowRole = row.role?.toLowerCase() ?? "";
 
       if (rowRole !== role) {
+        return false;
+      }
+    }
+
+    if (shiftType) {
+      const rowShiftType = row.shiftType?.toLowerCase() ?? "";
+
+      if (rowShiftType !== shiftType) {
         return false;
       }
     }
@@ -347,6 +359,10 @@ export async function listShiftRecords(filters?: ShiftListFilters) {
       equals: string;
       mode: "insensitive";
     };
+    shiftType?: {
+      equals: string;
+      mode: "insensitive";
+    };
   } = {
     userId: userId ?? undefined,
   };
@@ -375,6 +391,13 @@ export async function listShiftRecords(filters?: ShiftListFilters) {
   if (normalized.role) {
     where.role = {
       equals: normalized.role,
+      mode: "insensitive",
+    };
+  }
+
+  if (normalized.shiftType) {
+    where.shiftType = {
+      equals: normalized.shiftType,
       mode: "insensitive",
     };
   }
@@ -464,6 +487,7 @@ export async function getPreviousPeriodSeries(
     endDate: prevEndDate,
     location: filters?.location,
     role: filters?.role,
+    shiftType: filters?.shiftType,
   });
 
   return [...prevRows]
@@ -540,6 +564,7 @@ export async function getPreviousPeriodTotals(
     endDate: prevEndDate,
     location: filters?.location,
     role: filters?.role,
+    shiftType: filters?.shiftType,
   });
 
   const totalEarned = Number(
@@ -692,15 +717,16 @@ export async function deleteShift(id: string) {
 export async function getDistinctLocationsAndRoles(): Promise<{
   locations: string[];
   roles: string[];
+  shiftTypes: string[];
 }> {
   if (!isDatabaseConfigured()) {
-    return { locations: [], roles: [] };
+    return { locations: [], roles: [], shiftTypes: [] };
   }
 
   const prisma = getPrismaClient();
   const { userId } = await getCurrentUserContext();
 
-  const [locationRows, roleRows] = await Promise.all([
+  const [locationRows, roleRows, shiftTypeRows] = await Promise.all([
     prisma.shift.findMany({
       where: { userId: userId ?? undefined, location: { not: null } },
       select: { location: true },
@@ -713,10 +739,17 @@ export async function getDistinctLocationsAndRoles(): Promise<{
       distinct: ["role"],
       orderBy: { role: "asc" },
     }),
+    prisma.shift.findMany({
+      where: { userId: userId ?? undefined, shiftType: { not: null } },
+      select: { shiftType: true },
+      distinct: ["shiftType"],
+      orderBy: { shiftType: "asc" },
+    }),
   ]);
 
   return {
     locations: locationRows.map((r) => r.location as string),
     roles: roleRows.map((r) => r.role as string),
+    shiftTypes: shiftTypeRows.map((r) => r.shiftType as string),
   };
 }
