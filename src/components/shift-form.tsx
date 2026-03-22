@@ -109,10 +109,25 @@ export function ShiftForm({
         body: JSON.stringify(values),
       });
 
-      const payload = (await response.json()) as {
+      let payload: {
         message?: string;
         fieldErrors?: Partial<Record<keyof ShiftFormValues, string[]>>;
-      };
+      } = {};
+
+      const contentType = response.headers.get("content-type") ?? "";
+
+      if (contentType.includes("application/json")) {
+        payload = (await response.json()) as {
+          message?: string;
+          fieldErrors?: Partial<Record<keyof ShiftFormValues, string[]>>;
+        };
+      } else {
+        const fallbackBody = await response.text();
+
+        if (fallbackBody.trim()) {
+          payload.message = fallbackBody.trim();
+        }
+      }
 
       if (!response.ok) {
         const nextErrors: FormErrors = {};
@@ -143,9 +158,11 @@ export function ShiftForm({
         returnTo && returnTo.startsWith("/shifts") ? returnTo : "/shifts";
       router.push(nextHref);
       router.refresh();
-    } catch {
+    } catch (error) {
       setStatusMessage(
-        "The request failed before the app could save the shift.",
+        error instanceof Error && error.message
+          ? error.message
+          : "The request failed before the app could save the shift.",
       );
     } finally {
       setIsSubmitting(false);

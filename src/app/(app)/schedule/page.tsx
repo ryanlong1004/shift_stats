@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   addDays,
   endOfWeek,
@@ -11,23 +12,51 @@ import {
 } from "date-fns";
 
 import { formatCurrency } from "@/lib/formatters";
+import { auth } from "@/auth";
 import { listShiftRecords } from "@/lib/shift-repository";
+import { getUserSettings } from "@/lib/settings-repository";
 
 type SchedulePageSearchParams = {
   week?: string;
 };
 
-function resolveWeekStart(value?: string) {
+function getWeekStartsOn(anchor: string): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  const normalized = anchor.toLowerCase();
+
+  switch (normalized) {
+    case "sunday":
+      return 0;
+    case "monday":
+      return 1;
+    case "tuesday":
+      return 2;
+    case "wednesday":
+      return 3;
+    case "thursday":
+      return 4;
+    case "friday":
+      return 5;
+    case "saturday":
+      return 6;
+    default:
+      return 1;
+  }
+}
+
+function resolveWeekStart(
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6,
+  value?: string,
+) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return startOfWeek(new Date(), { weekStartsOn: 1 });
+    return startOfWeek(new Date(), { weekStartsOn });
   }
 
   const parsed = parse(value, "yyyy-MM-dd", new Date());
   if (!isValid(parsed)) {
-    return startOfWeek(new Date(), { weekStartsOn: 1 });
+    return startOfWeek(new Date(), { weekStartsOn });
   }
 
-  return startOfWeek(parsed, { weekStartsOn: 1 });
+  return startOfWeek(parsed, { weekStartsOn });
 }
 
 export default async function SchedulePage({
@@ -35,9 +64,17 @@ export default async function SchedulePage({
 }: {
   searchParams: Promise<SchedulePageSearchParams>;
 }) {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
   const resolvedSearchParams = await searchParams;
-  const weekStart = resolveWeekStart(resolvedSearchParams.week);
-  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+  const settings = await getUserSettings();
+  const weekStartsOn = getWeekStartsOn(settings.payPeriodAnchor);
+  const weekStart = resolveWeekStart(weekStartsOn, resolvedSearchParams.week);
+  const weekEnd = endOfWeek(weekStart, { weekStartsOn });
 
   const rows = await listShiftRecords({
     preset: "custom",

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { ExportShiftsButton } from "@/components/export-shifts-button";
 import { ShiftHistoryTable } from "@/components/shift-history-table";
+import { auth } from "@/auth";
 import {
   buildClearFiltersHref,
   buildPresetHref,
@@ -14,6 +16,7 @@ import {
   listShiftRecords,
   type ShiftListFilters,
 } from "@/lib/shift-repository";
+import { getUserSettings } from "@/lib/settings-repository";
 
 const filterPresets = [
   { value: "all", label: "All" },
@@ -34,7 +37,14 @@ export default async function ShiftsPage({
 }: {
   searchParams: Promise<ShiftsPageSearchParams>;
 }) {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
   const resolvedSearchParams = await searchParams;
+  const settings = await getUserSettings();
   const queryState = parseShiftsQueryState(resolvedSearchParams);
   const preset: ShiftListFilters["preset"] = queryState.preset;
   const filters: ShiftListFilters = {
@@ -44,6 +54,10 @@ export default async function ShiftsPage({
     location: resolvedSearchParams.location,
     role: resolvedSearchParams.role,
     shiftType: resolvedSearchParams.shiftType,
+    payPeriodSettings: {
+      type: settings.payPeriodType,
+      anchor: settings.payPeriodAnchor,
+    },
   };
 
   const [rows, allRows] = await Promise.all([
@@ -151,7 +165,7 @@ export default async function ShiftsPage({
 
       <form
         method="GET"
-        className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
+        className="grid gap-4 rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
       >
         <input type="hidden" name="sortBy" value={sortBy} />
         <input type="hidden" name="sortOrder" value={sortOrder} />
@@ -323,7 +337,7 @@ export default async function ShiftsPage({
         </div>
       </div>
 
-      <div className="rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+      <div className="rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
         <form
           method="GET"
           className="flex flex-col gap-3 sm:flex-row sm:items-end"

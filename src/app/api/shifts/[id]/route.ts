@@ -32,7 +32,15 @@ export async function GET(_request: Request, context: RouteContext) {
       );
     }
 
-    throw error;
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to load the shift right now.",
+      },
+      { status: 500 },
+    );
   }
 }
 

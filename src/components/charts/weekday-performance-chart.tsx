@@ -14,7 +14,14 @@ import { formatCurrency } from "@/lib/formatters";
 type WeekdayPoint = {
   label: string;
   hourlyRate: number;
+  location: string | null;
+  role: string | null;
+  shiftType: string | null;
 };
+
+function formatShiftLabel(value: string | null) {
+  return value && value.trim().length > 0 ? value : "Unspecified";
+}
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -28,6 +35,15 @@ function CustomWeekdayTooltip({ active, payload }: CustomTooltipProps) {
         <p className="font-medium">{payload[0].payload.label}</p>
         <p className="text-slate-300">
           Hourly Rate: {formatCurrency(payload[0].value)}
+        </p>
+        <p className="text-slate-300">
+          Role: {formatShiftLabel(payload[0].payload.role)}
+        </p>
+        <p className="text-slate-300">
+          Location: {formatShiftLabel(payload[0].payload.location)}
+        </p>
+        <p className="text-slate-300">
+          Shift type: {formatShiftLabel(payload[0].payload.shiftType)}
         </p>
       </div>
     );

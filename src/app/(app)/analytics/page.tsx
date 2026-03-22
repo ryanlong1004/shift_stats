@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { auth } from "@/auth";
 import { LazyCompareEarningsTrendChart } from "@/components/charts/lazy-compare-earnings-trend-chart";
 import { LazyWeekdayPerformanceChart } from "@/components/charts/lazy-weekday-performance-chart";
 import { SummaryCard } from "@/components/summary-card";
 import { GoalProgressPanel } from "@/components/goal-progress-panel";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatWeekday } from "@/lib/formatters";
 import {
   getDashboardSnapshot,
   getDistinctLocationsAndRoles,
@@ -34,11 +36,21 @@ const filterPresets = [
   { value: "custom", label: "Custom" },
 ] as const;
 
+function formatShiftLabel(value: string | null) {
+  return value && value.trim().length > 0 ? value : "Unspecified";
+}
+
 export default async function AnalyticsPage({
   searchParams,
 }: {
   searchParams: Promise<AnalyticsPageSearchParams>;
 }) {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
   const resolvedSearchParams = await searchParams;
   const preset: ShiftListFilters["preset"] =
     resolvedSearchParams.preset === "week" ||
@@ -57,10 +69,10 @@ export default async function AnalyticsPage({
     location: resolvedSearchParams.location,
     role: resolvedSearchParams.role,
     shiftType: resolvedSearchParams.shiftType,
-    payPeriodSettings:
-      preset === "pay"
-        ? { type: settings.payPeriodType, anchor: settings.payPeriodAnchor }
-        : undefined,
+    payPeriodSettings: {
+      type: settings.payPeriodType,
+      anchor: settings.payPeriodAnchor,
+    },
   };
 
   const [
@@ -71,14 +83,54 @@ export default async function AnalyticsPage({
     prevSeries,
     prevTotals,
   ] = await Promise.all([
-    getDashboardSnapshot(filters),
+    getDashboardSnapshot(filters, settings.payPeriodAnchor),
     getDistinctLocationsAndRoles(),
     listShiftRecords(),
     listGoals(),
     getPreviousPeriodSeries(filters),
     getPreviousPeriodTotals(filters),
   ]);
-  const goalProgress = computeGoalProgress(goals, allRows);
+  const goalProgress = computeGoalProgress(
+    goals,
+    allRows,
+    new Date(),
+    settings.payPeriodAnchor,
+  );
+  const activeFilters: Array<{ label: string; value: string }> = [];
+
+  if (preset !== "all") {
+    const presetLabel =
+      filterPresets.find((option) => option.value === preset)?.label ?? preset;
+    activeFilters.push({ label: "Preset", value: presetLabel });
+  }
+
+  if (resolvedSearchParams.startDate || resolvedSearchParams.endDate) {
+    activeFilters.push({
+      label: "Date",
+      value: `${resolvedSearchParams.startDate ?? "-"} to ${resolvedSearchParams.endDate ?? "-"}`,
+    });
+  }
+
+  if (resolvedSearchParams.location?.trim()) {
+    activeFilters.push({
+      label: "Location",
+      value: resolvedSearchParams.location,
+    });
+  }
+
+  if (resolvedSearchParams.role?.trim()) {
+    activeFilters.push({
+      label: "Role",
+      value: resolvedSearchParams.role,
+    });
+  }
+
+  if (resolvedSearchParams.shiftType?.trim()) {
+    activeFilters.push({
+      label: "Shift type",
+      value: resolvedSearchParams.shiftType,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -97,7 +149,7 @@ export default async function AnalyticsPage({
 
       <form
         method="GET"
-        className="grid gap-4 rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
+        className="grid gap-4 rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
       >
         <label className="space-y-2 text-sm text-slate-700">
           <span className="font-medium">Preset</span>
@@ -198,49 +250,26 @@ export default async function AnalyticsPage({
         </div>
       </form>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+      {activeFilters.length > 0 ? (
+        <section className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Current filter
+            Active filters
           </p>
-          <p className="mt-2 text-base font-medium text-slate-900">
-            {preset === "all" ? "All shifts" : preset}
-          </p>
-        </div>
-        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Date range
-          </p>
-          <p className="mt-2 text-base font-medium text-slate-900">
-            {resolvedSearchParams.startDate ?? "-"} to{" "}
-            {resolvedSearchParams.endDate ?? "-"}
-          </p>
-        </div>
-        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Location
-          </p>
-          <p className="mt-2 text-base font-medium text-slate-900">
-            {resolvedSearchParams.location || "All"}
-          </p>
-        </div>
-        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Role
-          </p>
-          <p className="mt-2 text-base font-medium text-slate-900">
-            {resolvedSearchParams.role || "All"}
-          </p>
-        </div>
-        <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Shift type
-          </p>
-          <p className="mt-2 text-base font-medium text-slate-900">
-            {resolvedSearchParams.shiftType || "All"}
-          </p>
-        </div>
-      </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {activeFilters.map((filter) => (
+              <span
+                key={`${filter.label}-${filter.value}`}
+                className="inline-flex items-center rounded-full border border-slate-300/80 bg-slate-50 px-3 py-1 text-xs text-slate-700"
+              >
+                <span className="font-semibold text-slate-900">
+                  {filter.label}:
+                </span>
+                <span className="ml-1">{filter.value}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
@@ -280,7 +309,7 @@ export default async function AnalyticsPage({
         />
       </section>
 
-      <section className="rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
           Averages
         </p>
@@ -337,11 +366,44 @@ export default async function AnalyticsPage({
               ? formatCurrency(snapshot.bestShift.totalEarned)
               : "No shifts yet"}
           </p>
-          <p className="mt-1 text-sm text-slate-600">
-            {snapshot.bestShift
-              ? `${snapshot.bestShift.shiftDate} over ${snapshot.bestShift.hoursWorked.toFixed(2)} hours`
-              : "Log your first shift to unlock this summary."}
-          </p>
+          {snapshot.bestShift ? (
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-600">
+              <div>
+                <dt className="text-slate-500">Date</dt>
+                <dd className="font-medium text-slate-800">
+                  {snapshot.bestShift.shiftDate}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Day</dt>
+                <dd className="font-medium text-slate-800">
+                  {formatWeekday(snapshot.bestShift.shiftDate)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Role</dt>
+                <dd className="font-medium text-slate-800">
+                  {formatShiftLabel(snapshot.bestShift.role)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Location</dt>
+                <dd className="font-medium text-slate-800">
+                  {formatShiftLabel(snapshot.bestShift.location)}
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-slate-500">Shift type</dt>
+                <dd className="font-medium text-slate-800">
+                  {formatShiftLabel(snapshot.bestShift.shiftType)}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="mt-1 text-sm text-slate-600">
+              Log your first shift to unlock this summary.
+            </p>
+          )}
         </div>
       </section>
 

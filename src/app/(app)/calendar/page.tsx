@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   addDays,
   endOfMonth,
@@ -14,13 +15,45 @@ import {
 } from "date-fns";
 
 import { formatCurrency } from "@/lib/formatters";
+import { auth } from "@/auth";
 import { listShiftRecords } from "@/lib/shift-repository";
+import { getUserSettings } from "@/lib/settings-repository";
 
 type CalendarPageSearchParams = {
   month?: string;
 };
 
-const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function getWeekStartsOn(anchor: string): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  const normalized = anchor.toLowerCase();
+
+  switch (normalized) {
+    case "sunday":
+      return 0;
+    case "monday":
+      return 1;
+    case "tuesday":
+      return 2;
+    case "wednesday":
+      return 3;
+    case "thursday":
+      return 4;
+    case "friday":
+      return 5;
+    case "saturday":
+      return 6;
+    default:
+      return 1;
+  }
+}
+
+function getOrderedWeekdayLabels(weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6) {
+  return [
+    ...weekdayLabels.slice(weekStartsOn),
+    ...weekdayLabels.slice(0, weekStartsOn),
+  ];
+}
 
 function resolveMonth(value?: string) {
   if (!value || !/^\d{4}-\d{2}$/.test(value)) {
@@ -41,7 +74,16 @@ export default async function CalendarPage({
 }: {
   searchParams: Promise<CalendarPageSearchParams>;
 }) {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
   const resolvedSearchParams = await searchParams;
+  const settings = await getUserSettings();
+  const weekStartsOn = getWeekStartsOn(settings.payPeriodAnchor);
+  const orderedWeekdayLabels = getOrderedWeekdayLabels(weekStartsOn);
   const monthStart = resolveMonth(resolvedSearchParams.month);
   const monthEnd = endOfMonth(monthStart);
 
@@ -61,8 +103,8 @@ export default async function CalendarPage({
 
   const maxTotal = Math.max(...Array.from(totalsByDate.values()), 0);
 
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const gridStart = startOfWeek(monthStart, { weekStartsOn });
+  const gridEnd = endOfWeek(monthEnd, { weekStartsOn });
   const calendarDays: Date[] = [];
 
   for (let day = gridStart; day <= gridEnd; day = addDays(day, 1)) {
@@ -105,9 +147,9 @@ export default async function CalendarPage({
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] sm:p-5">
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] sm:p-5">
         <div className="mb-3 grid grid-cols-7 gap-2">
-          {weekdayLabels.map((label) => (
+          {orderedWeekdayLabels.map((label) => (
             <div
               key={label}
               className="px-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"

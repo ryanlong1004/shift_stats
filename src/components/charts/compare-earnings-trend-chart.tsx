@@ -18,7 +18,14 @@ type EarningsPoint = {
   weekday: string;
   earned: number;
   hourlyRate: number;
+  location: string | null;
+  role: string | null;
+  shiftType: string | null;
 };
+
+function formatShiftLabel(value: string | null) {
+  return value && value.trim().length > 0 ? value : "Unspecified";
+}
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -30,6 +37,16 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   return (
     <div className="rounded bg-slate-950 px-3 py-2 text-sm text-white shadow-lg">
       <p className="font-medium">{payload[0].payload.label}</p>
+      <p className="text-slate-400">{payload[0].payload.weekday}</p>
+      <p className="text-slate-300">
+        Role: {formatShiftLabel(payload[0].payload.role)}
+      </p>
+      <p className="text-slate-300">
+        Location: {formatShiftLabel(payload[0].payload.location)}
+      </p>
+      <p className="text-slate-300">
+        Shift type: {formatShiftLabel(payload[0].payload.shiftType)}
+      </p>
       {payload.map((entry, i) => (
         <p key={i} className="text-slate-300">
           {entry.dataKey === "earned"
@@ -51,6 +68,9 @@ type MergedPoint = {
   weekday: string;
   earned: number;
   hourlyRate: number;
+  location: string | null;
+  role: string | null;
+  shiftType: string | null;
   prevEarned?: number;
   prevHourlyRate?: number;
 };
@@ -62,9 +82,12 @@ function mergeData(
   const maxLen = Math.max(current.length, prev.length);
   return Array.from({ length: maxLen }, (_, i) => ({
     label: current[i]?.label ?? prev[i]?.label ?? `${i + 1}`,
-    weekday: current[i]?.weekday ?? "",
+    weekday: current[i]?.weekday ?? prev[i]?.weekday ?? "",
     earned: current[i]?.earned ?? 0,
     hourlyRate: current[i]?.hourlyRate ?? 0,
+    location: current[i]?.location ?? prev[i]?.location ?? null,
+    role: current[i]?.role ?? prev[i]?.role ?? null,
+    shiftType: current[i]?.shiftType ?? prev[i]?.shiftType ?? null,
     prevEarned: prev[i]?.earned,
     prevHourlyRate: prev[i]?.hourlyRate,
   }));

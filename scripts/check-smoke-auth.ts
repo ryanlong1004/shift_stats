@@ -65,10 +65,10 @@ async function main() {
   ).replace(/\/$/, "");
   const email =
     process.env.AUTH_DEMO_EMAIL ??
-    (process.env.NODE_ENV === "production" ? "" : "demo@shiftstats.local");
+    (process.env.NODE_ENV === "production" ? "" : "demo@shift-stats.com");
   const password =
     process.env.AUTH_DEMO_PASSWORD ??
-    (process.env.NODE_ENV === "production" ? "" : "shiftstats-demo");
+    (process.env.NODE_ENV === "production" ? "" : "demo");
 
   if (!email || !password) {
     fail(

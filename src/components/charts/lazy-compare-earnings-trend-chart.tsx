@@ -20,6 +20,9 @@ type EarningsPoint = {
   weekday: string;
   earned: number;
   hourlyRate: number;
+  location: string | null;
+  role: string | null;
+  shiftType: string | null;
 };
 
 export function LazyCompareEarningsTrendChart({

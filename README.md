@@ -66,8 +66,8 @@ For local database development, create `.env.local` with:
 ```bash
 DATABASE_URL="postgresql://shiftstats:shiftstats@localhost:5432/shiftstats?schema=public"
 AUTH_SECRET="replace-with-a-generated-secret"
-AUTH_DEMO_EMAIL="demo@shiftstats.local"
-AUTH_DEMO_PASSWORD="shiftstats-demo"
+AUTH_DEMO_EMAIL="demo@shift-stats.com"
+AUTH_DEMO_PASSWORD="demo"
 AUTH_TRUST_HOST="true"
 ```
 
@@ -81,8 +81,8 @@ Minimum auth-related variables:
 
 ```bash
 AUTH_SECRET="replace-with-a-generated-secret"
-AUTH_DEMO_EMAIL="demo@shiftstats.local"
-AUTH_DEMO_PASSWORD="shiftstats-demo"
+AUTH_DEMO_EMAIL="demo@shift-stats.com"
+AUTH_DEMO_PASSWORD="demo"
 AUTH_TRUST_HOST="true"
 ```
 
@@ -166,8 +166,8 @@ Run the container:
 ```bash
 docker run --rm -p 3000:3000 \
 	-e AUTH_SECRET=replace-with-a-generated-secret \
-	-e AUTH_DEMO_EMAIL=demo@shiftstats.local \
-	-e AUTH_DEMO_PASSWORD=shiftstats-demo \
+   -e AUTH_DEMO_EMAIL=demo@shift-stats.com \
+   -e AUTH_DEMO_PASSWORD=demo \
 	-e AUTH_TRUST_HOST=true \
 	shiftstats
 ```
@@ -215,7 +215,7 @@ After DNS propagates, run a domain smoke check:
 
 ```bash
 SMOKE_BASE_URL=https://shift-stats.com \
-AUTH_DEMO_EMAIL=demo@shiftstats.local \
-AUTH_DEMO_PASSWORD=shiftstats-demo \
+AUTH_DEMO_EMAIL=demo@shift-stats.com \
+AUTH_DEMO_PASSWORD=demo \
 npm run check:smoke
 ```

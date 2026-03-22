@@ -8,9 +8,11 @@ import {
   type ShiftListFilters,
 } from "@/lib/shift-repository";
 import { shiftFormSchema } from "@/lib/shift-form";
+import { getUserSettings } from "@/lib/settings-repository";
 
 export async function GET(request: Request) {
   try {
+    const settings = await getUserSettings();
     const { searchParams } = new URL(request.url);
     const presetParam = searchParams.get("preset");
     const preset: ShiftListFilters["preset"] =
@@ -26,6 +28,10 @@ export async function GET(request: Request) {
       location: searchParams.get("location") ?? undefined,
       role: searchParams.get("role") ?? undefined,
       shiftType: searchParams.get("shiftType") ?? undefined,
+      payPeriodSettings: {
+        type: settings.payPeriodType,
+        anchor: settings.payPeriodAnchor,
+      },
     };
     const rows = await listShiftRecords(filters);
     const snapshot = await getShiftSnapshot(filters);
@@ -43,7 +49,15 @@ export async function GET(request: Request) {
       );
     }
 
-    throw error;
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to load shifts right now.",
+      },
+      { status: 500 },
+    );
   }
 }
 

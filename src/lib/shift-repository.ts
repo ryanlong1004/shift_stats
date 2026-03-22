@@ -16,6 +16,7 @@ import {
   buildDashboardSnapshot,
   buildShiftSnapshot,
   type DashboardSnapshot,
+  type WeekStartAnchor,
   type ShiftRecord,
 } from "@/lib/shift-records";
 import {
@@ -114,13 +115,21 @@ function resolvePayPeriodRange(
   };
 }
 
+function getWeekStartsOnFromSettings(
+  settings?: ShiftListFilters["payPeriodSettings"],
+): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  const anchor = settings?.anchor?.toLowerCase() ?? "monday";
+  return dayNameToWeekStartsOn[anchor] ?? 1;
+}
+
 function resolveDateRange(filters: NormalizedShiftListFilters) {
   if (filters.preset === "week") {
     const now = new Date();
+    const weekStartsOn = getWeekStartsOnFromSettings(filters.payPeriodSettings);
 
     return {
-      startDate: format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"),
-      endDate: format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"),
+      startDate: format(startOfWeek(now, { weekStartsOn }), "yyyy-MM-dd"),
+      endDate: format(endOfWeek(now, { weekStartsOn }), "yyyy-MM-dd"),
     };
   }
 
@@ -304,9 +313,14 @@ function mapDatabaseShift(shift: {
   };
 }
 
-function buildPersistenceData(values: ShiftFormValues) {
+function buildPersistenceData(
+  values: ShiftFormValues,
+  options?: { includeShiftType?: boolean; includeSalesAmount?: boolean },
+) {
   const validated = shiftFormSchema.parse(values);
   const preview = calculateShiftPreview(validated);
+  const includeShiftType = options?.includeShiftType ?? true;
+  const includeSalesAmount = options?.includeSalesAmount ?? true;
 
   return {
     shiftDate: parseDateOnlyToUtc(validated.shiftDate),
@@ -325,12 +339,39 @@ function buildPersistenceData(values: ShiftFormValues) {
     basePay: (validated.basePay.trim() || "0").toString(),
     otherIncome: (validated.otherIncome.trim() || "0").toString(),
     totalEarned: preview.totalEarned.toFixed(2),
-    salesAmount: validated.salesAmount.trim() || null,
+    salesAmount: includeSalesAmount
+      ? validated.salesAmount.trim() || null
+      : null,
     location: validated.location.trim() || null,
     role: validated.role.trim() || null,
-    shiftType: validated.shiftType.trim() || null,
+    shiftType: includeShiftType ? validated.shiftType.trim() || null : null,
     notes: validated.notes.trim() || null,
   };
+}
+
+function isClientFieldMismatchError(error: unknown, fields: string[]) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  const hasFieldMatch = fields.some((field) =>
+    message.includes(field.toLowerCase()),
+  );
+
+  if (!hasFieldMatch) {
+    return false;
+  }
+
+  return (
+    message.includes("unknown argument") ||
+    message.includes("unknown field") ||
+    message.includes("did you mean")
+  );
+}
+
+function isPersistenceFieldMismatchError(error: unknown) {
+  return isClientFieldMismatchError(error, ["shifttype", "salesamount"]);
 }
 
 export async function listShiftRecords(filters?: ShiftListFilters) {
@@ -428,12 +469,13 @@ export async function getShiftRecordById(id: string) {
 
 export async function getDashboardSnapshot(
   filters?: ShiftListFilters,
+  weekStartAnchor: WeekStartAnchor = "monday",
 ): Promise<DashboardSnapshot> {
   const [filteredRows, allRows] = await Promise.all([
     listShiftRecords(filters),
     listShiftRecords(),
   ]);
-  return buildDashboardSnapshot(filteredRows, allRows);
+  return buildDashboardSnapshot(filteredRows, allRows, weekStartAnchor);
 }
 
 export type EarningsSeries = DashboardSnapshot["earningsSeries"];
@@ -451,10 +493,13 @@ export async function getPreviousPeriodSeries(
   let prevEndDate: string | null = null;
 
   if (normalizedPreset === "week") {
-    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekStartsOn = getWeekStartsOnFromSettings(
+      filters?.payPeriodSettings,
+    );
+    const thisWeekStart = startOfWeek(now, { weekStartsOn });
     const prevStart = startOfWeek(
       new Date(thisWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000),
-      { weekStartsOn: 1 },
+      { weekStartsOn },
     );
     const prevEnd = new Date(thisWeekStart.getTime() - 1);
     prevStartDate = format(prevStart, "yyyy-MM-dd");
@@ -497,6 +542,9 @@ export async function getPreviousPeriodSeries(
       weekday: row.dayName,
       earned: row.totalEarned,
       hourlyRate: row.hourlyRate,
+      location: row.location,
+      role: row.role,
+      shiftType: row.shiftType,
     }));
 }
 
@@ -525,10 +573,13 @@ export async function getPreviousPeriodTotals(
   let label = "vs previous period";
 
   if (normalizedPreset === "week") {
-    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekStartsOn = getWeekStartsOnFromSettings(
+      filters?.payPeriodSettings,
+    );
+    const thisWeekStart = startOfWeek(now, { weekStartsOn });
     const prevStart = startOfWeek(
       new Date(thisWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000),
-      { weekStartsOn: 1 },
+      { weekStartsOn },
     );
     const prevEnd = new Date(thisWeekStart.getTime() - 1);
     prevStartDate = format(prevStart, "yyyy-MM-dd");
@@ -599,12 +650,48 @@ export async function createShift(values: ShiftFormValues) {
 
   const prisma = getPrismaClient();
   const { userId } = await getCurrentUserContext();
-  const created = await prisma.shift.create({
-    data: {
-      userId: userId ?? "",
-      ...buildPersistenceData(values),
-    },
-  });
+  let created;
+
+  try {
+    created = await prisma.shift.create({
+      data: {
+        userId: userId ?? "",
+        ...buildPersistenceData(values),
+      },
+    });
+  } catch (error) {
+    if (!isPersistenceFieldMismatchError(error)) {
+      throw error;
+    }
+
+    try {
+      created = await prisma.shift.create({
+        data: {
+          userId: userId ?? "",
+          ...buildPersistenceData(values, {
+            includeShiftType: !isClientFieldMismatchError(error, ["shifttype"]),
+            includeSalesAmount: !isClientFieldMismatchError(error, [
+              "salesamount",
+            ]),
+          }),
+        },
+      });
+    } catch (secondError) {
+      if (!isPersistenceFieldMismatchError(secondError)) {
+        throw secondError;
+      }
+
+      created = await prisma.shift.create({
+        data: {
+          userId: userId ?? "",
+          ...buildPersistenceData(values, {
+            includeShiftType: false,
+            includeSalesAmount: false,
+          }),
+        },
+      });
+    }
+  }
 
   return {
     ok: true as const,
@@ -626,16 +713,62 @@ export async function importShifts(values: ShiftFormValues[]) {
 
   const prisma = getPrismaClient();
   const { userId } = await getCurrentUserContext();
-  const created = await prisma.$transaction(
-    values.map((value) =>
-      prisma.shift.create({
-        data: {
-          userId: userId ?? "",
-          ...buildPersistenceData(value),
-        },
-      }),
-    ),
-  );
+  let created;
+
+  try {
+    created = await prisma.$transaction(
+      values.map((value) =>
+        prisma.shift.create({
+          data: {
+            userId: userId ?? "",
+            ...buildPersistenceData(value),
+          },
+        }),
+      ),
+    );
+  } catch (error) {
+    if (!isPersistenceFieldMismatchError(error)) {
+      throw error;
+    }
+
+    try {
+      created = await prisma.$transaction(
+        values.map((value) =>
+          prisma.shift.create({
+            data: {
+              userId: userId ?? "",
+              ...buildPersistenceData(value, {
+                includeShiftType: !isClientFieldMismatchError(error, [
+                  "shifttype",
+                ]),
+                includeSalesAmount: !isClientFieldMismatchError(error, [
+                  "salesamount",
+                ]),
+              }),
+            },
+          }),
+        ),
+      );
+    } catch (secondError) {
+      if (!isPersistenceFieldMismatchError(secondError)) {
+        throw secondError;
+      }
+
+      created = await prisma.$transaction(
+        values.map((value) =>
+          prisma.shift.create({
+            data: {
+              userId: userId ?? "",
+              ...buildPersistenceData(value, {
+                includeShiftType: false,
+                includeSalesAmount: false,
+              }),
+            },
+          }),
+        ),
+      );
+    }
+  }
 
   return {
     ok: true as const,
@@ -670,10 +803,42 @@ export async function updateShift(id: string, values: ShiftFormValues) {
     };
   }
 
-  const updated = await prisma.shift.update({
-    where: { id: existing.id },
-    data: buildPersistenceData(values),
-  });
+  let updated;
+
+  try {
+    updated = await prisma.shift.update({
+      where: { id: existing.id },
+      data: buildPersistenceData(values),
+    });
+  } catch (error) {
+    if (!isPersistenceFieldMismatchError(error)) {
+      throw error;
+    }
+
+    try {
+      updated = await prisma.shift.update({
+        where: { id: existing.id },
+        data: buildPersistenceData(values, {
+          includeShiftType: !isClientFieldMismatchError(error, ["shifttype"]),
+          includeSalesAmount: !isClientFieldMismatchError(error, [
+            "salesamount",
+          ]),
+        }),
+      });
+    } catch (secondError) {
+      if (!isPersistenceFieldMismatchError(secondError)) {
+        throw secondError;
+      }
+
+      updated = await prisma.shift.update({
+        where: { id: existing.id },
+        data: buildPersistenceData(values, {
+          includeShiftType: false,
+          includeSalesAmount: false,
+        }),
+      });
+    }
+  }
 
   return {
     ok: true as const,

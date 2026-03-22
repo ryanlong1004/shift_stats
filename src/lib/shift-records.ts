@@ -55,8 +55,17 @@ export type DashboardSnapshot = ShiftSnapshot & {
     weekday: string;
     earned: number;
     hourlyRate: number;
+    location: string | null;
+    role: string | null;
+    shiftType: string | null;
   }>;
-  weekdaySeries: Array<{ label: string; hourlyRate: number }>;
+  weekdaySeries: Array<{
+    label: string;
+    hourlyRate: number;
+    location: string | null;
+    role: string | null;
+    shiftType: string | null;
+  }>;
   insights: string[];
   bestWeekdayRate: number;
   averages: {
@@ -72,6 +81,56 @@ function round(value: number) {
 
 function getWeekdayFromShiftDate(shiftDate: string) {
   return format(parseISO(shiftDate), "EEEE");
+}
+
+export type WeekStartAnchor =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
+
+const WEEKDAY_ORDER = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+
+const WEEKDAY_START_INDEX: Record<WeekStartAnchor, number> = {
+  monday: 0,
+  tuesday: 1,
+  wednesday: 2,
+  thursday: 3,
+  friday: 4,
+  saturday: 5,
+  sunday: 6,
+};
+
+function getOrderedWeekdays(weekStartAnchor: WeekStartAnchor) {
+  const startIndex = WEEKDAY_START_INDEX[weekStartAnchor];
+  return [
+    ...WEEKDAY_ORDER.slice(startIndex),
+    ...WEEKDAY_ORDER.slice(0, startIndex),
+  ];
+}
+
+function getWeekStartsOn(
+  weekStartAnchor: WeekStartAnchor,
+): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  return ((WEEKDAY_START_INDEX[weekStartAnchor] + 1) % 7) as
+    | 0
+    | 1
+    | 2
+    | 3
+    | 4
+    | 5
+    | 6;
 }
 
 export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
@@ -135,6 +194,7 @@ export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
 export function buildDashboardSnapshot(
   rows: ShiftRecord[],
   allRows?: ShiftRecord[],
+  weekStartAnchor: WeekStartAnchor = "monday",
 ): DashboardSnapshot {
   const base = buildShiftSnapshot(rows);
 
@@ -173,7 +233,8 @@ export function buildDashboardSnapshot(
     : sortedRows;
 
   const referenceDate = parseISO(sortedRows[0].shiftDate);
-  const weekStart = startOfWeek(referenceDate, { weekStartsOn: 1 });
+  const weekStartsOn = getWeekStartsOn(weekStartAnchor);
+  const weekStart = startOfWeek(referenceDate, { weekStartsOn });
   const monthStart = startOfMonth(referenceDate);
   const monthEnd = endOfMonth(referenceDate);
 
@@ -201,7 +262,7 @@ export function buildDashboardSnapshot(
 
   // Previous week
   const prevWeekStart = startOfWeek(subWeeks(weekStart, 1), {
-    weekStartsOn: 1,
+    weekStartsOn,
   });
   const prevWeekEnd = subDays(weekStart, 1);
   const prevWeekRows = periodRows.filter((row) =>
@@ -227,7 +288,7 @@ export function buildDashboardSnapshot(
   const distinctWeeks = new Set(
     sortedRows.map((row) =>
       format(
-        startOfWeek(parseISO(row.shiftDate), { weekStartsOn: 1 }),
+        startOfWeek(parseISO(row.shiftDate), { weekStartsOn }),
         "yyyy-MM-dd",
       ),
     ),
@@ -252,18 +313,36 @@ export function buildDashboardSnapshot(
     },
   };
 
-  const weekdayMap = new Map<string, number>();
+  const weekdayBestShiftMap = new Map<string, ShiftRecord>();
 
   for (const row of sortedRows) {
     const weekday = getWeekdayFromShiftDate(row.shiftDate);
-    const currentBest = weekdayMap.get(weekday) ?? 0;
-    weekdayMap.set(weekday, Math.max(currentBest, row.hourlyRate));
+    const currentBest = weekdayBestShiftMap.get(weekday);
+
+    if (!currentBest || row.hourlyRate > currentBest.hourlyRate) {
+      weekdayBestShiftMap.set(weekday, row);
+    }
   }
 
-  const weekdaySeries = Array.from(weekdayMap.entries()).map(([label, rate]) => ({
-    label: label.slice(0, 3),
-    hourlyRate: round(rate),
-  }));
+  const orderedWeekdays = getOrderedWeekdays(weekStartAnchor);
+
+  const weekdaySeries = orderedWeekdays
+    .map((weekday) => {
+      const row = weekdayBestShiftMap.get(weekday);
+
+      if (!row) {
+        return null;
+      }
+
+      return {
+        label: weekday.slice(0, 3),
+        hourlyRate: round(row.hourlyRate),
+        location: row.location,
+        role: row.role,
+        shiftType: row.shiftType,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
 
   // Find best weekday rate from the weekdaySeries to ensure consistency
   const bestWeekdayEntry = weekdaySeries.reduce(
@@ -276,11 +355,14 @@ export function buildDashboardSnapshot(
     undefined as { label: string; hourlyRate: number } | undefined,
   );
 
+  const formatShiftLabel = (value: string | null) =>
+    value && value.trim().length > 0 ? value : "Unspecified";
+
   const insights = [
     `Average shift earnings are ${round(base.averageShiftEarnings).toFixed(2)} dollars across the current data.`,
     `${base.bestWeekday} is the strongest weekday at ${(bestWeekdayEntry?.hourlyRate ?? 0).toFixed(2)} dollars per hour.`,
     base.bestShift
-      ? `The top shift is ${base.bestShift.shiftDate} at ${base.bestShift.totalEarned.toFixed(2)} total earned over ${base.bestShift.hoursWorked.toFixed(2)} hours.`
+      ? `Top shift: ${base.bestShift.shiftDate} (${getWeekdayFromShiftDate(base.bestShift.shiftDate)}) • ${formatShiftLabel(base.bestShift.role)} @ ${formatShiftLabel(base.bestShift.location)} • ${formatShiftLabel(base.bestShift.shiftType)} • ${base.bestShift.totalEarned.toFixed(2)} over ${base.bestShift.hoursWorked.toFixed(2)} hours.`
       : "No best shift is available until at least one shift exists.",
   ];
 
@@ -296,6 +378,9 @@ export function buildDashboardSnapshot(
       weekday: getWeekdayFromShiftDate(row.shiftDate),
       earned: row.totalEarned,
       hourlyRate: row.hourlyRate,
+      location: row.location,
+      role: row.role,
+      shiftType: row.shiftType,
     })),
     weekdaySeries,
     insights,

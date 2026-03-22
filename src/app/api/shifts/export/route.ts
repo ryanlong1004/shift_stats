@@ -5,6 +5,7 @@ import {
   type ShiftListFilters,
 } from "@/lib/shift-repository";
 import { formatCurrency, formatDecimal } from "@/lib/formatters";
+import { getUserSettings } from "@/lib/settings-repository";
 
 function escapeCSVValue(
   value: string | number | boolean | null | undefined,
@@ -29,6 +30,7 @@ function escapeCSVValue(
 
 export async function POST(request: Request) {
   try {
+    const settings = await getUserSettings();
     const body = (await request.json()) as {
       preset?: string;
       startDate?: string;
@@ -51,6 +53,10 @@ export async function POST(request: Request) {
       location: body.location,
       role: body.role,
       shiftType: body.shiftType,
+      payPeriodSettings: {
+        type: settings.payPeriodType,
+        anchor: settings.payPeriodAnchor,
+      },
     };
 
     const rows = await listShiftRecords(filters);

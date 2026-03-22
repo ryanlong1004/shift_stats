@@ -1,6 +1,16 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 
+class CommandError extends Error {
+  constructor(
+    message: string,
+    readonly output: string,
+  ) {
+    super(message);
+    this.name = "CommandError";
+  }
+}
+
 async function resolveLocalPort() {
   const configuredPort = process.env.SMOKE_LOCAL_PORT;
 
@@ -40,12 +50,25 @@ function runCommand(
   env?: Record<string, string>,
 ) {
   return new Promise<void>((resolve, reject) => {
+    let output = "";
     const child = spawn(command, args, {
-      stdio: "inherit",
+      stdio: ["ignore", "pipe", "pipe"],
       env: {
         ...process.env,
         ...env,
       },
+    });
+
+    child.stdout.on("data", (chunk: Buffer | string) => {
+      const text = chunk.toString();
+      output += text;
+      process.stdout.write(text);
+    });
+
+    child.stderr.on("data", (chunk: Buffer | string) => {
+      const text = chunk.toString();
+      output += text;
+      process.stderr.write(text);
     });
 
     child.on("error", (error) => {
@@ -59,10 +82,58 @@ function runCommand(
       }
 
       reject(
-        new Error(`${command} ${args.join(" ")} exited with code ${code}`),
+        new CommandError(
+          `${command} ${args.join(" ")} exited with code ${code}`,
+          output,
+        ),
       );
     });
   });
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+function isPrismaAdvisoryLockTimeout(error: unknown) {
+  if (!(error instanceof CommandError)) {
+    return false;
+  }
+
+  const details = `${error.message}\n${error.output}`.toLowerCase();
+  return (
+    details.includes("p1002") &&
+    (details.includes("pg_advisory_lock") ||
+      details.includes("advisory lock") ||
+      details.includes("timed out trying to acquire"))
+  );
+}
+
+async function runPrismaMigrationsWithRetry(env: Record<string, string>) {
+  const rawAttempts = Number(process.env.SMOKE_MIGRATE_MAX_ATTEMPTS ?? "3");
+  const maxAttempts = Number.isFinite(rawAttempts)
+    ? Math.max(1, Math.floor(rawAttempts))
+    : 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await runCommand("npm", ["run", "prisma:migrate:deploy"], env);
+      return;
+    } catch (error) {
+      const isRetryable = isPrismaAdvisoryLockTimeout(error);
+      const shouldRetry = isRetryable && attempt < maxAttempts;
+
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      const backoffMs = 2_000 * 2 ** (attempt - 1);
+      console.warn(
+        `Migration advisory lock timeout on attempt ${attempt}/${maxAttempts}; retrying in ${backoffMs}ms...`,
+      );
+      await sleep(backoffMs);
+    }
+  }
 }
 
 async function waitForServer(baseUrl: string, timeoutMs: number) {
@@ -99,14 +170,14 @@ async function main() {
       process.env.AUTH_EXPOSE_EMAIL_VERIFICATION_URL ?? "true",
     AUTH_REQUIRE_EMAIL_VERIFICATION:
       process.env.AUTH_REQUIRE_EMAIL_VERIFICATION ?? "false",
-    AUTH_DEMO_EMAIL: process.env.AUTH_DEMO_EMAIL ?? "demo@shiftstats.local",
-    AUTH_DEMO_PASSWORD: process.env.AUTH_DEMO_PASSWORD ?? "shiftstats-demo",
+    AUTH_DEMO_EMAIL: process.env.AUTH_DEMO_EMAIL ?? "demo@shift-stats.com",
+    AUTH_DEMO_PASSWORD: process.env.AUTH_DEMO_PASSWORD ?? "demo",
     PORT: localPort,
     SMOKE_BASE_URL: baseUrl,
   };
 
   console.log("Applying Prisma migrations for smoke test database...");
-  await runCommand("npm", ["run", "prisma:migrate:deploy"], smokeEnv);
+  await runPrismaMigrationsWithRetry(smokeEnv);
 
   console.log("Building app for local production smoke test...");
   await runCommand("npm", ["run", "build"]);

@@ -21,6 +21,9 @@ export function LazyEarningsTrendChart({
     weekday: string;
     earned: number;
     hourlyRate: number;
+    location: string | null;
+    role: string | null;
+    shiftType: string | null;
   }>;
 }) {
   return <EarningsTrendChart data={data} />;

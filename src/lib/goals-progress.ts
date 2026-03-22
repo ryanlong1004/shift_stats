@@ -23,14 +23,37 @@ export type GoalProgress = GoalRecord & {
   pct: number; // 0–100+, capped at 150 for display safety
 };
 
-function periodInterval(period: GoalPeriod, ref: Date) {
+type WeekStartAnchor =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
+
+const WEEK_STARTS_ON: Record<WeekStartAnchor, 0 | 1 | 2 | 3 | 4 | 5 | 6> = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+};
+
+function periodInterval(
+  period: GoalPeriod,
+  ref: Date,
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6,
+) {
   switch (period) {
     case "daily":
       return { start: startOfDay(ref), end: endOfDay(ref) };
     case "weekly":
       return {
-        start: startOfWeek(ref, { weekStartsOn: 1 }),
-        end: endOfWeek(ref, { weekStartsOn: 1 }),
+        start: startOfWeek(ref, { weekStartsOn }),
+        end: endOfWeek(ref, { weekStartsOn }),
       };
     case "monthly":
       return { start: startOfMonth(ref), end: endOfMonth(ref) };
@@ -44,8 +67,9 @@ function computeCurrent(
   rows: ShiftRecord[],
   period: GoalPeriod,
   ref: Date,
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6,
 ): number {
-  const interval = periodInterval(period, ref);
+  const interval = periodInterval(period, ref, weekStartsOn);
   const periodRows = rows.filter((r) =>
     isWithinInterval(parseISO(r.shiftDate), interval),
   );
@@ -67,9 +91,18 @@ export function computeGoalProgress(
   goals: GoalRecord[],
   allRows: ShiftRecord[],
   ref: Date = new Date(),
+  weekStartAnchor: WeekStartAnchor = "monday",
 ): GoalProgress[] {
+  const weekStartsOn = WEEK_STARTS_ON[weekStartAnchor];
+
   return goals.map((goal) => {
-    const current = computeCurrent(goal.metricType, allRows, goal.period, ref);
+    const current = computeCurrent(
+      goal.metricType,
+      allRows,
+      goal.period,
+      ref,
+      weekStartsOn,
+    );
     const pct =
       goal.targetValue > 0
         ? Math.min((current / goal.targetValue) * 100, 150)

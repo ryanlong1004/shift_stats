@@ -16,7 +16,13 @@ const WeekdayPerformanceChart = dynamic(
 export function LazyWeekdayPerformanceChart({
   data,
 }: {
-  data: Array<{ label: string; hourlyRate: number }>;
+  data: Array<{
+    label: string;
+    hourlyRate: number;
+    location: string | null;
+    role: string | null;
+    shiftType: string | null;
+  }>;
 }) {
   return <WeekdayPerformanceChart data={data} />;
 }
