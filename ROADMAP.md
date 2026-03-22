@@ -1,6 +1,6 @@
 # Shiftstats Implementation Spec
 
-Last updated: 2026-03-20
+Last updated: 2026-03-22
 
 ## Status Snapshot (2026-03-20)
 
@@ -155,6 +155,66 @@ Weekly agenda timeline listing upcoming and recent shifts with time, role, and l
 - Navigation: prev/next week arrows
 - "Add shift" shortcut from any empty day slot
 - Add "Schedule" to primary nav
+
+### Phase 4 — Advanced analytics (data-rich)
+
+Now that users have deeper history, analytics can move beyond summaries into decision support.
+
+#### Year-over-year and period heatmaps
+
+Help users spot seasonality and recurring high/low periods.
+
+- Add monthly and weekday heatmaps for earnings, hours, and hourly rate
+- Support comparisons: this year vs last year, current quarter vs previous quarter
+- Add role/location dimension toggles so users can isolate where trends come from
+
+#### Trend decomposition and baseline tracking
+
+Separate short-term noise from long-term signal.
+
+- Add rolling averages (7/14/30 shift windows) to earnings and hourly charts
+- Surface baseline vs current variance: "Current rate is +$3.40/hr above 30-shift baseline"
+- Add confidence bands for rolling trend lines when sample size is large enough
+
+#### Shift profitability diagnostics
+
+Explain why certain shifts outperform others.
+
+- Add role/location/shift-type breakdown tables with weighted hourly rate and contribution share
+- Add "Top combinations" insights (e.g., "Bartender @ Camelot on Sat" has strongest median take-home)
+- Add sample-size indicators to avoid over-weighting small groups
+
+#### Outlier and anomaly detection
+
+Automatically flag unusual results to improve data quality and awareness.
+
+- Detect shifts that are extreme vs user baseline (earnings, hourly rate, hours)
+- Flag likely data-entry errors (e.g., implausible hours or compensation)
+- Add optional "Exclude anomalies" toggle in analytics views
+
+#### Forecasting and target projection
+
+Project outcomes for the current week/month/pay period.
+
+- Add end-of-period projection cards based on current pace + recent trend
+- Estimate probability of hitting active goals (weekly/monthly)
+- Show "needed pace" to hit goal: remaining earnings/hours and required daily average
+
+#### Session-level analytics presets and saved views
+
+Reduce repeated filter setup for power users.
+
+- Save named analytics views (filters + chart selections)
+- Add quick presets: "Best shifts", "High tip %", "Long shifts", "Weekend focus"
+- Support one-click share/export snapshot (CSV + image-ready chart states)
+
+#### Data quality and statistical safeguards
+
+Keep analytics trustworthy as the model grows.
+
+- Minimum-sample thresholds before showing comparative claims
+- Robust metrics options: median, percentile bands, winsorized means
+- Clear annotation of missing fields (sales, role, location) and bias warnings
 
 ## Project Identity
 
