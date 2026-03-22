@@ -15,6 +15,8 @@ import { getSampleShiftById, getSampleShiftRows } from "@/lib/sample-data";
 import {
   buildDashboardSnapshot,
   buildShiftSnapshot,
+  excludeOutlierRows,
+  type DashboardSnapshotOptions,
   type DashboardSnapshot,
   type WeekStartAnchor,
   type ShiftRecord,
@@ -470,18 +472,20 @@ export async function getShiftRecordById(id: string) {
 export async function getDashboardSnapshot(
   filters?: ShiftListFilters,
   weekStartAnchor: WeekStartAnchor = "monday",
+  options?: DashboardSnapshotOptions,
 ): Promise<DashboardSnapshot> {
   const [filteredRows, allRows] = await Promise.all([
     listShiftRecords(filters),
     listShiftRecords(),
   ]);
-  return buildDashboardSnapshot(filteredRows, allRows, weekStartAnchor);
+  return buildDashboardSnapshot(filteredRows, allRows, weekStartAnchor, options);
 }
 
 export type EarningsSeries = DashboardSnapshot["earningsSeries"];
 
 export async function getPreviousPeriodSeries(
   filters?: ShiftListFilters,
+  options?: DashboardSnapshotOptions,
 ): Promise<EarningsSeries> {
   const normalizedPreset = filters?.preset ?? "all";
   if (normalizedPreset === "all" || normalizedPreset === "custom") {
@@ -526,7 +530,7 @@ export async function getPreviousPeriodSeries(
 
   if (!prevStartDate || !prevEndDate) return [];
 
-  const prevRows = await listShiftRecords({
+  const prevRowsRaw = await listShiftRecords({
     preset: "custom",
     startDate: prevStartDate,
     endDate: prevEndDate,
@@ -534,6 +538,9 @@ export async function getPreviousPeriodSeries(
     role: filters?.role,
     shiftType: filters?.shiftType,
   });
+  const prevRows = options?.excludeOutliers
+    ? excludeOutlierRows(prevRowsRaw)
+    : prevRowsRaw;
 
   return [...prevRows]
     .sort((a, b) => a.shiftDate.localeCompare(b.shiftDate))
@@ -557,6 +564,7 @@ export type PreviousPeriodTotals = {
 
 export async function getPreviousPeriodTotals(
   filters?: ShiftListFilters,
+  options?: DashboardSnapshotOptions,
 ): Promise<PreviousPeriodTotals | null> {
   const normalizedPreset = filters?.preset ?? "all";
   if (
@@ -609,7 +617,7 @@ export async function getPreviousPeriodTotals(
 
   if (!prevStartDate || !prevEndDate) return null;
 
-  const prevRows = await listShiftRecords({
+  const prevRowsRaw = await listShiftRecords({
     preset: "custom",
     startDate: prevStartDate,
     endDate: prevEndDate,
@@ -617,6 +625,9 @@ export async function getPreviousPeriodTotals(
     role: filters?.role,
     shiftType: filters?.shiftType,
   });
+  const prevRows = options?.excludeOutliers
+    ? excludeOutlierRows(prevRowsRaw)
+    : prevRowsRaw;
 
   const totalEarned = Number(
     prevRows.reduce((sum, r) => sum + r.totalEarned, 0).toFixed(2),

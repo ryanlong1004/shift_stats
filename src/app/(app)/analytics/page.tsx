@@ -26,6 +26,7 @@ type AnalyticsPageSearchParams = {
   location?: string;
   role?: string;
   shiftType?: string;
+  excludeOutliers?: string;
 };
 
 const filterPresets = [
@@ -42,6 +43,14 @@ function formatShiftLabel(value: string | null) {
 
 function formatPct(value: number) {
   return `${value.toFixed(1)}%`;
+}
+
+function formatOutlierBand(band: { lower: number; upper: number } | null) {
+  if (!band) {
+    return "Not enough variation";
+  }
+
+  return `${formatCurrency(band.lower)} to ${formatCurrency(band.upper)}`;
 }
 
 export default async function AnalyticsPage({
@@ -65,6 +74,9 @@ export default async function AnalyticsPage({
       : "all";
 
   const settings = await getUserSettings();
+  const excludeOutliers =
+    resolvedSearchParams.excludeOutliers === "1" ||
+    resolvedSearchParams.excludeOutliers === "true";
 
   const filters: ShiftListFilters = {
     preset,
@@ -87,12 +99,14 @@ export default async function AnalyticsPage({
     prevSeries,
     prevTotals,
   ] = await Promise.all([
-    getDashboardSnapshot(filters, settings.payPeriodAnchor),
+    getDashboardSnapshot(filters, settings.payPeriodAnchor, {
+      excludeOutliers,
+    }),
     getDistinctLocationsAndRoles(),
     listShiftRecords(),
     listGoals(),
-    getPreviousPeriodSeries(filters),
-    getPreviousPeriodTotals(filters),
+    getPreviousPeriodSeries(filters, { excludeOutliers }),
+    getPreviousPeriodTotals(filters, { excludeOutliers }),
   ]);
   const goalProgress = computeGoalProgress(
     goals,
@@ -133,6 +147,13 @@ export default async function AnalyticsPage({
     activeFilters.push({
       label: "Shift type",
       value: resolvedSearchParams.shiftType,
+    });
+  }
+
+  if (excludeOutliers) {
+    activeFilters.push({
+      label: "Anomalies",
+      value: "Excluded from metrics",
     });
   }
 
@@ -251,6 +272,17 @@ export default async function AnalyticsPage({
           >
             Clear
           </Link>
+
+          <label className="ml-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+            <input
+              type="checkbox"
+              name="excludeOutliers"
+              value="1"
+              defaultChecked={excludeOutliers}
+              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+            />
+            Exclude anomalies
+          </label>
         </div>
       </form>
 
@@ -425,6 +457,57 @@ export default async function AnalyticsPage({
             </div>
           ))}
         </div>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-3">
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Anomaly rate</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatPct(snapshot.outliers.anomalyPct)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {snapshot.outliers.anomalyCount} flagged of {snapshot.outliers.totalRows} shifts
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Total-earned band</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">
+              {formatOutlierBand(snapshot.outliers.thresholds.totalEarned)}
+            </p>
+            <p className="mt-1 text-xs text-slate-600">IQR x 1.5 threshold</p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Hourly-rate band</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">
+              {formatOutlierBand(snapshot.outliers.thresholds.hourlyRate)}
+            </p>
+            <p className="mt-1 text-xs text-slate-600">IQR x 1.5 threshold</p>
+          </div>
+        </div>
+
+        {snapshot.outliers.topAnomalies.length > 0 ? (
+          <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
+            <p className="text-sm font-semibold text-slate-900">Top anomalies</p>
+            <ul className="mt-3 space-y-2">
+              {snapshot.outliers.topAnomalies.map((row) => (
+                <li
+                  key={row.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-slate-900">{row.shiftDate}</p>
+                    <p className="text-xs text-slate-600">{row.reasons.join(" + ")}</p>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-600">
+                    {formatCurrency(row.totalEarned)} earned at {formatCurrency(row.hourlyRate)}/hr
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {formatShiftLabel(row.role)} @ {formatShiftLabel(row.location)} • {formatShiftLabel(row.shiftType)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">

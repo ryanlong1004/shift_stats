@@ -78,6 +78,7 @@ export type DashboardSnapshot = ShiftSnapshot & {
     byLocation: ProfitabilityBreakdownRow[];
     byShiftType: ProfitabilityBreakdownRow[];
   };
+  outliers: OutlierDiagnostics;
 };
 
 export type ProfitabilityBreakdownRow = {
@@ -87,6 +88,38 @@ export type ProfitabilityBreakdownRow = {
   totalHours: number;
   weightedHourlyRate: number;
   contributionPct: number;
+};
+
+export type OutlierThresholdBand = {
+  lower: number;
+  upper: number;
+};
+
+export type OutlierAnomalyRow = {
+  id: string;
+  shiftDate: string;
+  totalEarned: number;
+  hourlyRate: number;
+  location: string | null;
+  role: string | null;
+  shiftType: string | null;
+  reasons: string[];
+};
+
+export type OutlierDiagnostics = {
+  excluded: boolean;
+  totalRows: number;
+  anomalyCount: number;
+  anomalyPct: number;
+  thresholds: {
+    totalEarned: OutlierThresholdBand | null;
+    hourlyRate: OutlierThresholdBand | null;
+  };
+  topAnomalies: OutlierAnomalyRow[];
+};
+
+export type DashboardSnapshotOptions = {
+  excludeOutliers?: boolean;
 };
 
 function round(value: number) {
@@ -208,6 +241,140 @@ function buildProfitabilityBreakdown(
   });
 }
 
+function quantile(sortedValues: number[], q: number) {
+  if (sortedValues.length === 0) {
+    return 0;
+  }
+
+  const position = (sortedValues.length - 1) * q;
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+
+  if (lower === upper) {
+    return sortedValues[lower];
+  }
+
+  const weight = position - lower;
+  return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
+}
+
+function buildIqrBand(values: number[]): OutlierThresholdBand | null {
+  if (values.length < 4) {
+    return null;
+  }
+
+  const sortedValues = [...values].sort((left, right) => left - right);
+  const q1 = quantile(sortedValues, 0.25);
+  const q3 = quantile(sortedValues, 0.75);
+  const iqr = q3 - q1;
+
+  if (iqr === 0) {
+    return null;
+  }
+
+  const margin = iqr * 1.5;
+  return {
+    lower: round(q1 - margin),
+    upper: round(q3 + margin),
+  };
+}
+
+function getBandScore(value: number, band: OutlierThresholdBand | null) {
+  if (!band) {
+    return 0;
+  }
+
+  if (value < band.lower) {
+    return (band.lower - value) / Math.max(Math.abs(band.lower), 1);
+  }
+
+  if (value > band.upper) {
+    return (value - band.upper) / Math.max(Math.abs(band.upper), 1);
+  }
+
+  return 0;
+}
+
+function getOutlierDiagnostics(rows: ShiftRecord[]): {
+  diagnostics: OutlierDiagnostics;
+  inlierRows: ShiftRecord[];
+} {
+  const totalEarnedBand = buildIqrBand(rows.map((row) => row.totalEarned));
+  const hourlyRateBand = buildIqrBand(rows.map((row) => row.hourlyRate));
+  const anomalies: Array<{ row: ShiftRecord; score: number; reasons: string[] }> =
+    [];
+  const inlierRows: ShiftRecord[] = [];
+
+  for (const row of rows) {
+    const reasons: string[] = [];
+
+    if (
+      totalEarnedBand &&
+      (row.totalEarned < totalEarnedBand.lower ||
+        row.totalEarned > totalEarnedBand.upper)
+    ) {
+      reasons.push("Total earned");
+    }
+
+    if (
+      hourlyRateBand &&
+      (row.hourlyRate < hourlyRateBand.lower || row.hourlyRate > hourlyRateBand.upper)
+    ) {
+      reasons.push("Hourly rate");
+    }
+
+    if (reasons.length > 0) {
+      const score =
+        getBandScore(row.totalEarned, totalEarnedBand) +
+        getBandScore(row.hourlyRate, hourlyRateBand);
+
+      anomalies.push({ row, score, reasons });
+      continue;
+    }
+
+    inlierRows.push(row);
+  }
+
+  const topAnomalies = [...anomalies]
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score;
+      }
+
+      return right.row.shiftDate.localeCompare(left.row.shiftDate);
+    })
+    .slice(0, 5)
+    .map(({ row, reasons }) => ({
+      id: row.id,
+      shiftDate: row.shiftDate,
+      totalEarned: row.totalEarned,
+      hourlyRate: row.hourlyRate,
+      location: row.location,
+      role: row.role,
+      shiftType: row.shiftType,
+      reasons,
+    }));
+
+  return {
+    diagnostics: {
+      excluded: false,
+      totalRows: rows.length,
+      anomalyCount: anomalies.length,
+      anomalyPct: rows.length > 0 ? round((anomalies.length / rows.length) * 100) : 0,
+      thresholds: {
+        totalEarned: totalEarnedBand,
+        hourlyRate: hourlyRateBand,
+      },
+      topAnomalies,
+    },
+    inlierRows,
+  };
+}
+
+export function excludeOutlierRows(rows: ShiftRecord[]) {
+  return getOutlierDiagnostics(rows).inlierRows;
+}
+
 export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
   if (rows.length === 0) {
     return {
@@ -270,18 +437,25 @@ export function buildDashboardSnapshot(
   rows: ShiftRecord[],
   allRows?: ShiftRecord[],
   weekStartAnchor: WeekStartAnchor = "monday",
+  options: DashboardSnapshotOptions = {},
 ): DashboardSnapshot {
-  const base = buildShiftSnapshot(rows);
-
   const sortedRows = [...rows].sort((left, right) =>
     right.shiftDate.localeCompare(left.shiftDate),
   );
+  const { diagnostics: rawOutlierDiagnostics, inlierRows } =
+    getOutlierDiagnostics(sortedRows);
+  const excludeOutliers = options.excludeOutliers === true;
+  const workingRows = excludeOutliers ? inlierRows : sortedRows;
+  const base = buildShiftSnapshot(workingRows);
 
   // Period totals (week/month) are always computed from unfiltered allRows so
   // they don't change when the user switches the period chip.
-  const periodRows = allRows
+  const periodRowsRaw = allRows
     ? [...allRows].sort((l, r) => r.shiftDate.localeCompare(l.shiftDate))
     : sortedRows;
+  const periodRows = excludeOutliers
+    ? excludeOutlierRows(periodRowsRaw)
+    : periodRowsRaw;
 
   const referenceDate = new Date();
   const weekStartsOn = getWeekStartsOn(weekStartAnchor);
@@ -337,7 +511,7 @@ export function buildDashboardSnapshot(
 
   // Averages across shifts, weeks, and months
   const distinctWeeks = new Set(
-    sortedRows.map((row) =>
+    workingRows.map((row) =>
       format(
         startOfWeek(parseISO(row.shiftDate), { weekStartsOn }),
         "yyyy-MM-dd",
@@ -346,13 +520,14 @@ export function buildDashboardSnapshot(
   );
   const numWeeks = Math.max(distinctWeeks.size, 1);
   const distinctMonths = new Set(
-    sortedRows.map((row) => format(parseISO(row.shiftDate), "yyyy-MM")),
+    workingRows.map((row) => format(parseISO(row.shiftDate), "yyyy-MM")),
   );
   const numMonths = Math.max(distinctMonths.size, 1);
+  const hasShifts = base.totalShifts > 0;
   const averages = {
     perShift: {
-      earned: round(base.totalEarned / base.totalShifts),
-      hours: round(base.totalHours / base.totalShifts),
+      earned: hasShifts ? round(base.totalEarned / base.totalShifts) : 0,
+      hours: hasShifts ? round(base.totalHours / base.totalShifts) : 0,
     },
     perWeek: {
       earned: round(base.totalEarned / numWeeks),
@@ -366,7 +541,7 @@ export function buildDashboardSnapshot(
 
   const weekdayBestShiftMap = new Map<string, ShiftRecord>();
 
-  for (const row of sortedRows) {
+  for (const row of workingRows) {
     const weekday = getWeekdayFromShiftDate(row.shiftDate);
     const currentBest = weekdayBestShiftMap.get(weekday);
 
@@ -423,8 +598,8 @@ export function buildDashboardSnapshot(
     monthTotalEarned,
     prevWeekTotalEarned,
     prevMonthTotalEarned,
-    recentShifts: sortedRows.slice(0, 5),
-    earningsSeries: [...sortedRows].reverse().map((row) => ({
+    recentShifts: workingRows.slice(0, 5),
+    earningsSeries: [...workingRows].reverse().map((row) => ({
       label: format(parseISO(row.shiftDate), "MMM d"),
       weekday: getWeekdayFromShiftDate(row.shiftDate),
       earned: row.totalEarned,
@@ -438,19 +613,23 @@ export function buildDashboardSnapshot(
     bestWeekdayRate: bestWeekdayEntry?.hourlyRate ?? 0,
     averages,
     profitability: {
-      byRole: buildProfitabilityBreakdown(sortedRows, base.totalEarned, (row) =>
+      byRole: buildProfitabilityBreakdown(workingRows, base.totalEarned, (row) =>
         normalizeBreakdownLabel(row.role),
       ),
       byLocation: buildProfitabilityBreakdown(
-        sortedRows,
+        workingRows,
         base.totalEarned,
         (row) => normalizeBreakdownLabel(row.location),
       ),
       byShiftType: buildProfitabilityBreakdown(
-        sortedRows,
+        workingRows,
         base.totalEarned,
         (row) => normalizeBreakdownLabel(row.shiftType),
       ),
+    },
+    outliers: {
+      ...rawOutlierDiagnostics,
+      excluded: excludeOutliers,
     },
   };
 }
