@@ -478,7 +478,12 @@ export async function getDashboardSnapshot(
     listShiftRecords(filters),
     listShiftRecords(),
   ]);
-  return buildDashboardSnapshot(filteredRows, allRows, weekStartAnchor, options);
+  return buildDashboardSnapshot(
+    filteredRows,
+    allRows,
+    weekStartAnchor,
+    options,
+  );
 }
 
 export type EarningsSeries = DashboardSnapshot["earningsSeries"];
@@ -539,7 +544,7 @@ export async function getPreviousPeriodSeries(
     shiftType: filters?.shiftType,
   });
   const prevRows = options?.excludeOutliers
-    ? excludeOutlierRows(prevRowsRaw)
+    ? excludeOutlierRows(prevRowsRaw, options.outlierIqrMultiplier)
     : prevRowsRaw;
 
   return [...prevRows]
@@ -626,7 +631,7 @@ export async function getPreviousPeriodTotals(
     shiftType: filters?.shiftType,
   });
   const prevRows = options?.excludeOutliers
-    ? excludeOutlierRows(prevRowsRaw)
+    ? excludeOutlierRows(prevRowsRaw, options.outlierIqrMultiplier)
     : prevRowsRaw;
 
   const totalEarned = Number(

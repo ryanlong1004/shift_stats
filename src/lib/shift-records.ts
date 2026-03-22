@@ -120,6 +120,7 @@ export type OutlierDiagnostics = {
 
 export type DashboardSnapshotOptions = {
   excludeOutliers?: boolean;
+  outlierIqrMultiplier?: number;
 };
 
 function round(value: number) {
@@ -258,7 +259,10 @@ function quantile(sortedValues: number[], q: number) {
   return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
 }
 
-function buildIqrBand(values: number[]): OutlierThresholdBand | null {
+function buildIqrBand(
+  values: number[],
+  iqrMultiplier: number,
+): OutlierThresholdBand | null {
   if (values.length < 4) {
     return null;
   }
@@ -272,7 +276,7 @@ function buildIqrBand(values: number[]): OutlierThresholdBand | null {
     return null;
   }
 
-  const margin = iqr * 1.5;
+  const margin = iqr * iqrMultiplier;
   return {
     lower: round(q1 - margin),
     upper: round(q3 + margin),
@@ -295,14 +299,42 @@ function getBandScore(value: number, band: OutlierThresholdBand | null) {
   return 0;
 }
 
-function getOutlierDiagnostics(rows: ShiftRecord[]): {
+function sanitizeOutlierIqrMultiplier(value: number | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 1.5;
+  }
+
+  if (value < 1) {
+    return 1;
+  }
+
+  if (value > 3) {
+    return 3;
+  }
+
+  return round(value);
+}
+
+function getOutlierDiagnostics(
+  rows: ShiftRecord[],
+  outlierIqrMultiplier = 1.5,
+): {
   diagnostics: OutlierDiagnostics;
   inlierRows: ShiftRecord[];
 } {
-  const totalEarnedBand = buildIqrBand(rows.map((row) => row.totalEarned));
-  const hourlyRateBand = buildIqrBand(rows.map((row) => row.hourlyRate));
-  const anomalies: Array<{ row: ShiftRecord; score: number; reasons: string[] }> =
-    [];
+  const totalEarnedBand = buildIqrBand(
+    rows.map((row) => row.totalEarned),
+    outlierIqrMultiplier,
+  );
+  const hourlyRateBand = buildIqrBand(
+    rows.map((row) => row.hourlyRate),
+    outlierIqrMultiplier,
+  );
+  const anomalies: Array<{
+    row: ShiftRecord;
+    score: number;
+    reasons: string[];
+  }> = [];
   const inlierRows: ShiftRecord[] = [];
 
   for (const row of rows) {
@@ -318,7 +350,8 @@ function getOutlierDiagnostics(rows: ShiftRecord[]): {
 
     if (
       hourlyRateBand &&
-      (row.hourlyRate < hourlyRateBand.lower || row.hourlyRate > hourlyRateBand.upper)
+      (row.hourlyRate < hourlyRateBand.lower ||
+        row.hourlyRate > hourlyRateBand.upper)
     ) {
       reasons.push("Hourly rate");
     }
@@ -360,7 +393,8 @@ function getOutlierDiagnostics(rows: ShiftRecord[]): {
       excluded: false,
       totalRows: rows.length,
       anomalyCount: anomalies.length,
-      anomalyPct: rows.length > 0 ? round((anomalies.length / rows.length) * 100) : 0,
+      anomalyPct:
+        rows.length > 0 ? round((anomalies.length / rows.length) * 100) : 0,
       thresholds: {
         totalEarned: totalEarnedBand,
         hourlyRate: hourlyRateBand,
@@ -371,8 +405,13 @@ function getOutlierDiagnostics(rows: ShiftRecord[]): {
   };
 }
 
-export function excludeOutlierRows(rows: ShiftRecord[]) {
-  return getOutlierDiagnostics(rows).inlierRows;
+export function excludeOutlierRows(
+  rows: ShiftRecord[],
+  outlierIqrMultiplier?: number,
+) {
+  const sanitizedMultiplier =
+    sanitizeOutlierIqrMultiplier(outlierIqrMultiplier);
+  return getOutlierDiagnostics(rows, sanitizedMultiplier).inlierRows;
 }
 
 export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
@@ -439,11 +478,14 @@ export function buildDashboardSnapshot(
   weekStartAnchor: WeekStartAnchor = "monday",
   options: DashboardSnapshotOptions = {},
 ): DashboardSnapshot {
+  const outlierIqrMultiplier = sanitizeOutlierIqrMultiplier(
+    options.outlierIqrMultiplier,
+  );
   const sortedRows = [...rows].sort((left, right) =>
     right.shiftDate.localeCompare(left.shiftDate),
   );
   const { diagnostics: rawOutlierDiagnostics, inlierRows } =
-    getOutlierDiagnostics(sortedRows);
+    getOutlierDiagnostics(sortedRows, outlierIqrMultiplier);
   const excludeOutliers = options.excludeOutliers === true;
   const workingRows = excludeOutliers ? inlierRows : sortedRows;
   const base = buildShiftSnapshot(workingRows);
@@ -454,7 +496,7 @@ export function buildDashboardSnapshot(
     ? [...allRows].sort((l, r) => r.shiftDate.localeCompare(l.shiftDate))
     : sortedRows;
   const periodRows = excludeOutliers
-    ? excludeOutlierRows(periodRowsRaw)
+    ? excludeOutlierRows(periodRowsRaw, outlierIqrMultiplier)
     : periodRowsRaw;
 
   const referenceDate = new Date();
@@ -613,8 +655,10 @@ export function buildDashboardSnapshot(
     bestWeekdayRate: bestWeekdayEntry?.hourlyRate ?? 0,
     averages,
     profitability: {
-      byRole: buildProfitabilityBreakdown(workingRows, base.totalEarned, (row) =>
-        normalizeBreakdownLabel(row.role),
+      byRole: buildProfitabilityBreakdown(
+        workingRows,
+        base.totalEarned,
+        (row) => normalizeBreakdownLabel(row.role),
       ),
       byLocation: buildProfitabilityBreakdown(
         workingRows,

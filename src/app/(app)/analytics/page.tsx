@@ -27,7 +27,15 @@ type AnalyticsPageSearchParams = {
   role?: string;
   shiftType?: string;
   excludeOutliers?: string;
+  outlierSensitivity?: string;
 };
+
+const OUTLIER_SENSITIVITY_OPTIONS = [
+  { value: "1", label: "Strict (1.0x IQR)", multiplier: 1 },
+  { value: "1.5", label: "Balanced (1.5x IQR)", multiplier: 1.5 },
+  { value: "2", label: "Relaxed (2.0x IQR)", multiplier: 2 },
+  { value: "3", label: "Very relaxed (3.0x IQR)", multiplier: 3 },
+] as const;
 
 const filterPresets = [
   { value: "all", label: "All" },
@@ -77,6 +85,11 @@ export default async function AnalyticsPage({
   const excludeOutliers =
     resolvedSearchParams.excludeOutliers === "1" ||
     resolvedSearchParams.excludeOutliers === "true";
+  const selectedOutlierSensitivity =
+    OUTLIER_SENSITIVITY_OPTIONS.find(
+      (option) => option.value === resolvedSearchParams.outlierSensitivity,
+    ) ?? OUTLIER_SENSITIVITY_OPTIONS[1];
+  const outlierIqrMultiplier = selectedOutlierSensitivity.multiplier;
 
   const filters: ShiftListFilters = {
     preset,
@@ -101,12 +114,19 @@ export default async function AnalyticsPage({
   ] = await Promise.all([
     getDashboardSnapshot(filters, settings.payPeriodAnchor, {
       excludeOutliers,
+      outlierIqrMultiplier,
     }),
     getDistinctLocationsAndRoles(),
     listShiftRecords(),
     listGoals(),
-    getPreviousPeriodSeries(filters, { excludeOutliers }),
-    getPreviousPeriodTotals(filters, { excludeOutliers }),
+    getPreviousPeriodSeries(filters, {
+      excludeOutliers,
+      outlierIqrMultiplier,
+    }),
+    getPreviousPeriodTotals(filters, {
+      excludeOutliers,
+      outlierIqrMultiplier,
+    }),
   ]);
   const goalProgress = computeGoalProgress(
     goals,
@@ -154,6 +174,13 @@ export default async function AnalyticsPage({
     activeFilters.push({
       label: "Anomalies",
       value: "Excluded from metrics",
+    });
+  }
+
+  if (resolvedSearchParams.outlierSensitivity?.trim()) {
+    activeFilters.push({
+      label: "Sensitivity",
+      value: selectedOutlierSensitivity.label,
     });
   }
 
@@ -282,6 +309,21 @@ export default async function AnalyticsPage({
               className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
             />
             Exclude anomalies
+          </label>
+
+          <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+            Sensitivity
+            <select
+              name="outlierSensitivity"
+              defaultValue={selectedOutlierSensitivity.value}
+              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
+            >
+              {OUTLIER_SENSITIVITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
       </form>
@@ -465,28 +507,39 @@ export default async function AnalyticsPage({
               {formatPct(snapshot.outliers.anomalyPct)}
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              {snapshot.outliers.anomalyCount} flagged of {snapshot.outliers.totalRows} shifts
+              {snapshot.outliers.anomalyCount} flagged of{" "}
+              {snapshot.outliers.totalRows} shifts
             </p>
           </div>
           <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
-            <p className="text-xs font-medium text-slate-500">Total-earned band</p>
+            <p className="text-xs font-medium text-slate-500">
+              Total-earned band
+            </p>
             <p className="mt-2 text-sm font-semibold text-slate-900">
               {formatOutlierBand(snapshot.outliers.thresholds.totalEarned)}
             </p>
-            <p className="mt-1 text-xs text-slate-600">IQR x 1.5 threshold</p>
+            <p className="mt-1 text-xs text-slate-600">
+              IQR x {outlierIqrMultiplier.toFixed(1)} threshold
+            </p>
           </div>
           <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
-            <p className="text-xs font-medium text-slate-500">Hourly-rate band</p>
+            <p className="text-xs font-medium text-slate-500">
+              Hourly-rate band
+            </p>
             <p className="mt-2 text-sm font-semibold text-slate-900">
               {formatOutlierBand(snapshot.outliers.thresholds.hourlyRate)}
             </p>
-            <p className="mt-1 text-xs text-slate-600">IQR x 1.5 threshold</p>
+            <p className="mt-1 text-xs text-slate-600">
+              IQR x {outlierIqrMultiplier.toFixed(1)} threshold
+            </p>
           </div>
         </div>
 
         {snapshot.outliers.topAnomalies.length > 0 ? (
           <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
-            <p className="text-sm font-semibold text-slate-900">Top anomalies</p>
+            <p className="text-sm font-semibold text-slate-900">
+              Top anomalies
+            </p>
             <ul className="mt-3 space-y-2">
               {snapshot.outliers.topAnomalies.map((row) => (
                 <li
@@ -494,14 +547,21 @@ export default async function AnalyticsPage({
                   className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-slate-900">{row.shiftDate}</p>
-                    <p className="text-xs text-slate-600">{row.reasons.join(" + ")}</p>
+                    <p className="text-sm font-medium text-slate-900">
+                      {row.shiftDate}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      {row.reasons.join(" + ")}
+                    </p>
                   </div>
                   <p className="mt-2 text-xs text-slate-600">
-                    {formatCurrency(row.totalEarned)} earned at {formatCurrency(row.hourlyRate)}/hr
+                    {formatCurrency(row.totalEarned)} earned at{" "}
+                    {formatCurrency(row.hourlyRate)}/hr
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {formatShiftLabel(row.role)} @ {formatShiftLabel(row.location)} • {formatShiftLabel(row.shiftType)}
+                    {formatShiftLabel(row.role)} @{" "}
+                    {formatShiftLabel(row.location)} •{" "}
+                    {formatShiftLabel(row.shiftType)}
                   </p>
                 </li>
               ))}
