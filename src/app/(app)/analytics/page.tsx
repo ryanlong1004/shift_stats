@@ -466,9 +466,12 @@ export default async function AnalyticsPage({
         </div>
 
         <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
-          <p className="text-xs font-medium text-slate-500">Current view baseline</p>
+          <p className="text-xs font-medium text-slate-500">
+            Current view baseline
+          </p>
           <p className="mt-2 text-lg font-semibold text-slate-950">
-            {formatCurrency(snapshot.baselines.currentPeriod.dailyAvgEarned)} / day
+            {formatCurrency(snapshot.baselines.currentPeriod.dailyAvgEarned)} /
+            day
           </p>
           <p className="mt-1 text-sm text-slate-600">
             Across {snapshot.baselines.currentPeriod.spanDays} days and{" "}
@@ -476,12 +479,59 @@ export default async function AnalyticsPage({
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-700">
-              Earnings vs 30d: {formatSignedPct(snapshot.baselines.varianceVs30.earnedPct)}
+              Earnings vs 30d:{" "}
+              {formatSignedPct(snapshot.baselines.varianceVs30.earnedPct)}
             </span>
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-700">
-              Hours vs 30d: {formatSignedPct(snapshot.baselines.varianceVs30.hoursPct)}
+              Hours vs 30d:{" "}
+              {formatSignedPct(snapshot.baselines.varianceVs30.hoursPct)}
             </span>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Phase 4 diagnostics
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">
+              7-day forecast
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500">Based on the last 30 calendar days</p>
+        </div>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-3">
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Low estimate</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.forecast.projected.low)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">Expected</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.forecast.projected.expected)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-medium text-slate-500">High estimate</p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">
+              {formatCurrency(snapshot.forecast.projected.high)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
+          <p className="text-xs font-medium text-slate-500">Model inputs</p>
+          <p className="mt-2 text-sm text-slate-700">
+            Mean daily earnings: {formatCurrency(snapshot.forecast.meanDailyEarned)}
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            Daily volatility: {formatCurrency(snapshot.forecast.dailyVolatility)}
+          </p>
         </div>
       </section>
 

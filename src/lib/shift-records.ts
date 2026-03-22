@@ -83,6 +83,18 @@ export type DashboardSnapshot = ShiftSnapshot & {
   };
   outliers: OutlierDiagnostics;
   baselines: RollingBaselineDiagnostics;
+  forecast: ForecastDiagnostics;
+};
+
+export type ForecastDiagnostics = {
+  horizonDays: number;
+  meanDailyEarned: number;
+  dailyVolatility: number;
+  projected: {
+    low: number;
+    expected: number;
+    high: number;
+  };
 };
 
 export type RollingBaselineWindow = {
@@ -304,6 +316,44 @@ function getRollingWindowStats(
     dailyAvgEarned: round(totalEarned / windowDays),
     dailyAvgHours: round(totalHours / windowDays),
   };
+}
+
+function getDailyEarningsSeries(
+  rows: ShiftRecord[],
+  referenceDate: Date,
+  windowDays: number,
+) {
+  const totalsByDate = new Map<string, number>();
+
+  for (const row of rows) {
+    const current = totalsByDate.get(row.shiftDate) ?? 0;
+    totalsByDate.set(row.shiftDate, current + row.totalEarned);
+  }
+
+  return Array.from({ length: windowDays }, (_, index) => {
+    const day = subDays(referenceDate, windowDays - 1 - index);
+    const key = format(day, "yyyy-MM-dd");
+    return round(totalsByDate.get(key) ?? 0);
+  });
+}
+
+function getMean(values: number[]) {
+  if (values.length === 0) {
+    return 0;
+  }
+
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function getStdDev(values: number[], mean: number) {
+  if (values.length < 2) {
+    return 0;
+  }
+
+  const variance =
+    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+    values.length;
+  return Math.sqrt(variance);
 }
 
 function quantile(sortedValues: number[], q: number) {
@@ -721,6 +771,21 @@ export function buildDashboardSnapshot(
       : 1;
   const currentPeriodDailyAvgEarned = round(base.totalEarned / currentSpanDays);
   const currentPeriodDailyAvgHours = round(base.totalHours / currentSpanDays);
+  const forecastWindowDays = 30;
+  const forecastHorizonDays = 7;
+  const dailyEarnedSeries = getDailyEarningsSeries(
+    workingRows,
+    referenceDate,
+    forecastWindowDays,
+  );
+  const meanDailyEarnedRaw = getMean(dailyEarnedSeries);
+  const dailyVolatilityRaw = getStdDev(dailyEarnedSeries, meanDailyEarnedRaw);
+  const expectedProjection = round(meanDailyEarnedRaw * forecastHorizonDays);
+  const volatilityProjection = round(
+    dailyVolatilityRaw * Math.sqrt(forecastHorizonDays),
+  );
+  const lowProjection = round(Math.max(0, expectedProjection - volatilityProjection));
+  const highProjection = round(expectedProjection + volatilityProjection);
 
   return {
     ...base,
@@ -782,6 +847,16 @@ export function buildDashboardSnapshot(
           currentPeriodDailyAvgHours,
           baseline30?.dailyAvgHours ?? 0,
         ),
+      },
+    },
+    forecast: {
+      horizonDays: forecastHorizonDays,
+      meanDailyEarned: round(meanDailyEarnedRaw),
+      dailyVolatility: round(dailyVolatilityRaw),
+      projected: {
+        low: lowProjection,
+        expected: expectedProjection,
+        high: highProjection,
       },
     },
   };
