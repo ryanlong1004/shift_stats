@@ -16,14 +16,49 @@ import {
 import { SignOutButton } from "@/components/sign-out-button";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/shifts", label: "Shifts", icon: TableProperties },
-  { href: "/shifts/new", label: "Add Shift", icon: PlusCircle },
-  { href: "/analytics", label: "Analytics", icon: ChartNoAxesCombined },
-  { href: "/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/schedule", label: "Schedule", icon: CalendarRange },
-  { href: "/goals", label: "Goals", icon: Target },
-  { href: "/settings", label: "Settings", icon: Settings },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    mobileLabel: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/shifts",
+    label: "Shifts",
+    mobileLabel: "Shifts",
+    icon: TableProperties,
+  },
+  {
+    href: "/shifts/new",
+    label: "Add Shift",
+    mobileLabel: "New",
+    icon: PlusCircle,
+  },
+  {
+    href: "/analytics",
+    label: "Analytics",
+    mobileLabel: "Analytics",
+    icon: ChartNoAxesCombined,
+  },
+  {
+    href: "/calendar",
+    label: "Calendar",
+    mobileLabel: "Calendar",
+    icon: CalendarDays,
+  },
+  {
+    href: "/schedule",
+    label: "Schedule",
+    mobileLabel: "Schedule",
+    icon: CalendarRange,
+  },
+  { href: "/goals", label: "Goals", mobileLabel: "Goals", icon: Target },
+  {
+    href: "/settings",
+    label: "Settings",
+    mobileLabel: "Settings",
+    icon: Settings,
+  },
 ];
 
 export function AppShell({
@@ -120,7 +155,7 @@ export function AppShell({
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
+                  {item.mobileLabel}
                 </Link>
               );
             })}
