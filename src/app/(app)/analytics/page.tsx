@@ -58,7 +58,9 @@ function formatOutlierBand(band: { lower: number; upper: number } | null) {
     return "Not enough variation";
   }
 
-  return `${formatCurrency(band.lower)} to ${formatCurrency(band.upper)}`;
+  const displayLowerBound = Math.max(0, band.lower);
+
+  return `${formatCurrency(displayLowerBound)} to ${formatCurrency(band.upper)}`;
 }
 
 export default async function AnalyticsPage({
