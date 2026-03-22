@@ -726,7 +726,7 @@ export async function getDistinctLocationsAndRoles(): Promise<{
   const prisma = getPrismaClient();
   const { userId } = await getCurrentUserContext();
 
-  const [locationRows, roleRows, shiftTypeRows] = await Promise.all([
+  const [locationRows, roleRows] = await Promise.all([
     prisma.shift.findMany({
       where: { userId: userId ?? undefined, location: { not: null } },
       select: { location: true },
@@ -739,13 +739,27 @@ export async function getDistinctLocationsAndRoles(): Promise<{
       distinct: ["role"],
       orderBy: { role: "asc" },
     }),
-    prisma.shift.findMany({
+  ]);
+
+  let shiftTypeRows: Array<{ shiftType: string | null }> = [];
+
+  try {
+    shiftTypeRows = await prisma.shift.findMany({
       where: { userId: userId ?? undefined, shiftType: { not: null } },
       select: { shiftType: true },
       distinct: ["shiftType"],
       orderBy: { shiftType: "asc" },
-    }),
-  ]);
+    });
+  } catch (error) {
+    // Gracefully handle a stale generated Prisma client that doesn't yet know
+    // about shiftType. Location/role filters still work while the app restarts.
+    if (
+      !(error instanceof Error) ||
+      !error.message.toLowerCase().includes("shifttype")
+    ) {
+      throw error;
+    }
+  }
 
   return {
     locations: locationRows.map((r) => r.location as string),
