@@ -261,6 +261,11 @@ function mapDatabaseShift(shift: {
   const totalEarned = Number(
     (basePay * hoursWorked + cashTips + cardTips + otherIncome).toFixed(2),
   );
+  const totalTips = cashTips + cardTips;
+  const tipPct =
+    salesAmount && salesAmount > 0
+      ? Number(((totalTips / salesAmount) * 100).toFixed(2))
+      : null;
 
   return {
     id: shift.id,
@@ -278,6 +283,7 @@ function mapDatabaseShift(shift: {
     basePay,
     otherIncome,
     salesAmount,
+    tipPct,
     location: shift.location,
     role: shift.role,
     notes: shift.notes,

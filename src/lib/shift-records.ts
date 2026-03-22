@@ -26,6 +26,7 @@ export type ShiftRecord = {
   basePay: number;
   otherIncome: number;
   salesAmount: number | null;
+  tipPct: number | null; // (totalTips / salesAmount) * 100 when salesAmount is present
   location: string | null;
   role: string | null;
   notes: string | null;
@@ -271,22 +272,20 @@ export function buildDashboardSnapshot(
     }),
   );
 
-  const bestWeekdayEntry = Array.from(weekdayMap.entries()).reduce(
-    (best, [label, totals]) => {
-      const rate = totals.hours > 0 ? totals.earned / totals.hours : 0;
-
-      if (!best || rate > best.rate) {
-        return { label, rate };
+  // Find best weekday rate from the weekdaySeries to ensure consistency
+  const bestWeekdayEntry = weekdaySeries.reduce(
+    (best, current) => {
+      if (!best || current.hourlyRate > best.hourlyRate) {
+        return { label: current.label, hourlyRate: current.hourlyRate };
       }
-
       return best;
     },
-    undefined as { label: string; rate: number } | undefined,
+    undefined as { label: string; hourlyRate: number } | undefined,
   );
 
   const insights = [
     `Average shift earnings are ${round(base.averageShiftEarnings).toFixed(2)} dollars across the current data.`,
-    `${bestWeekdayEntry?.label ?? "N/A"} is the strongest weekday at ${round(bestWeekdayEntry?.rate ?? 0).toFixed(2)} dollars per hour.`,
+    `${bestWeekdayEntry?.label ?? "N/A"} is the strongest weekday at ${(bestWeekdayEntry?.hourlyRate ?? 0).toFixed(2)} dollars per hour.`,
     base.bestShift
       ? `The top shift is ${base.bestShift.shiftDate} at ${base.bestShift.totalEarned.toFixed(2)} total earned over ${base.bestShift.hoursWorked.toFixed(2)} hours.`
       : "No best shift is available until at least one shift exists.",
@@ -307,7 +306,7 @@ export function buildDashboardSnapshot(
     })),
     weekdaySeries,
     insights,
-    bestWeekdayRate: round(bestWeekdayEntry?.rate ?? 0),
+    bestWeekdayRate: bestWeekdayEntry?.hourlyRate ?? 0,
     averages,
   };
 }
