@@ -247,6 +247,7 @@ function mapDatabaseShift(shift: {
   salesAmount: { toString(): string } | null;
   location: string | null;
   role: string | null;
+  shiftType: string | null;
   notes: string | null;
 }): ShiftRecord {
   const shiftDate = formatUtcDateToDateOnly(shift.shiftDate);
@@ -286,6 +287,7 @@ function mapDatabaseShift(shift: {
     tipPct,
     location: shift.location,
     role: shift.role,
+    shiftType: shift.shiftType,
     notes: shift.notes,
   };
 }
@@ -314,6 +316,7 @@ function buildPersistenceData(values: ShiftFormValues) {
     salesAmount: validated.salesAmount.trim() || null,
     location: validated.location.trim() || null,
     role: validated.role.trim() || null,
+    shiftType: validated.shiftType.trim() || null,
     notes: validated.notes.trim() || null,
   };
 }

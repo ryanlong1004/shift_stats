@@ -69,6 +69,7 @@ model Shift {
   salesAmount  Decimal?       @db.Decimal(10, 2)
   location    String?
   role        String?
+  shiftType   String?
   notes       String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt

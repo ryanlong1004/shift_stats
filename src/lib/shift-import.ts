@@ -115,6 +115,7 @@ export function parseShiftImportCsv(csvText: string): ParsedImportResult {
       salesAmount: "",
       location: getValue("Location"),
       role: getValue("Role"),
+      shiftType: getValue("Shift Type"),
       notes: getValue("Notes"),
     };
 

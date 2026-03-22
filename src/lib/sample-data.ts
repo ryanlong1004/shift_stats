@@ -37,6 +37,7 @@ async function readRows(): Promise<ShiftRecord[]> {
       tipPct: null,
       location: null,
       role: null,
+      shiftType: null,
       notes: `Imported from starter sample (${dayName}, ${hourlyRate}/hr).`,
     };
   });

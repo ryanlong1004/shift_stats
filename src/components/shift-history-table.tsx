@@ -93,6 +93,12 @@ export function ShiftHistoryTable({
                   {row.role ?? "-"}
                 </dd>
               </div>
+              <div>
+                <dt className="text-slate-500">Shift type</dt>
+                <dd className="font-medium text-slate-800">
+                  {row.shiftType ?? "-"}
+                </dd>
+              </div>
             </dl>
 
             <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">
@@ -129,6 +135,7 @@ export function ShiftHistoryTable({
               <th className="px-4 py-3 font-medium">Base</th>
               <th className="px-4 py-3 font-medium">Location</th>
               <th className="px-4 py-3 font-medium">Role</th>
+              <th className="px-4 py-3 font-medium">Shift type</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
@@ -164,6 +171,9 @@ export function ShiftHistoryTable({
                   {row.location ?? "-"}
                 </td>
                 <td className="px-4 py-3 text-slate-700">{row.role ?? "-"}</td>
+                <td className="px-4 py-3 text-slate-700">
+                  {row.shiftType ?? "-"}
+                </td>
                 <td className="px-4 py-3 text-slate-700">{row.notes ?? "-"}</td>
                 <td className="px-4 py-3 text-slate-700">
                   <div className="flex flex-col gap-2">

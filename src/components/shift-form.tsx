@@ -21,6 +21,7 @@ type ShiftFormProps = {
   returnTo?: string;
   locationOptions?: string[];
   roleOptions?: string[];
+  shiftTypeOptions?: string[];
   showSalesField?: boolean;
 };
 
@@ -34,6 +35,7 @@ export function ShiftForm({
   returnTo,
   locationOptions = [],
   roleOptions = [],
+  shiftTypeOptions = [],
   showSalesField = false,
 }: ShiftFormProps) {
   const router = useRouter();
@@ -296,7 +298,7 @@ export function ShiftForm({
           </Field>
         ) : null}
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-3">
           <Field
             label="Location"
             hint={
@@ -347,6 +349,35 @@ export function ShiftForm({
               {roleOptions.length ? (
                 <datalist id="role-options">
                   {roleOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              ) : null}
+            </>
+          </Field>
+          <Field
+            label="Shift type"
+            hint={
+              shiftTypeOptions.length
+                ? "Type a new shift type or pick a saved one."
+                : undefined
+            }
+            error={errors.shiftType}
+          >
+            <>
+              <input
+                type="text"
+                list="shift-type-options"
+                placeholder="Select or type a shift type..."
+                value={values.shiftType}
+                onChange={(event) =>
+                  updateValue("shiftType", event.target.value)
+                }
+                className={inputClassName(errors.shiftType)}
+              />
+              {shiftTypeOptions.length ? (
+                <datalist id="shift-type-options">
+                  {shiftTypeOptions.map((option) => (
                     <option key={option} value={option} />
                   ))}
                 </datalist>

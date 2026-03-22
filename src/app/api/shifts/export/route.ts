@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       "Other Income",
       "Location",
       "Role",
+      "Shift Type",
     ];
 
     if (body.includeNotes) {
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
         formatCurrency(row.otherIncome),
         row.location ?? "",
         row.role ?? "",
+        row.shiftType ?? "",
       ];
 
       if (body.includeNotes) {

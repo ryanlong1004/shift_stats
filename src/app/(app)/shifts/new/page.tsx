@@ -10,6 +10,9 @@ export default async function NewShiftPage() {
   const roleOptions = Array.from(
     new Set(allRows.map((row) => row.role).filter(Boolean)),
   ) as string[];
+  const shiftTypeOptions = Array.from(
+    new Set(allRows.map((row) => row.shiftType).filter(Boolean)),
+  ) as string[];
   const showSalesField = isDatabaseConfigured()
     ? await getUserSettings()
         .then((s) => s.trackSales)
@@ -36,6 +39,7 @@ export default async function NewShiftPage() {
         persistenceEnabled={isDatabaseConfigured()}
         locationOptions={locationOptions}
         roleOptions={roleOptions}
+        shiftTypeOptions={shiftTypeOptions}
         showSalesField={showSalesField}
       />
     </div>

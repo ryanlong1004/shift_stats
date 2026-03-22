@@ -37,6 +37,9 @@ export default async function EditShiftPage({
   const roleOptions = Array.from(
     new Set(allRows.map((entry) => entry.role).filter(Boolean)),
   ) as string[];
+  const shiftTypeOptions = Array.from(
+    new Set(allRows.map((entry) => entry.shiftType).filter(Boolean)),
+  ) as string[];
 
   if (!row) {
     notFound();
@@ -64,6 +67,7 @@ export default async function EditShiftPage({
         returnTo={returnTo}
         locationOptions={locationOptions}
         roleOptions={roleOptions}
+        shiftTypeOptions={shiftTypeOptions}
         showSalesField={showSalesField}
       />
     </div>

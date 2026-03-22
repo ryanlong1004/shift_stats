@@ -29,6 +29,7 @@ export type ShiftRecord = {
   tipPct: number | null; // (totalTips / salesAmount) * 100 when salesAmount is present
   location: string | null;
   role: string | null;
+  shiftType: string | null;
   notes: string | null;
 };
 

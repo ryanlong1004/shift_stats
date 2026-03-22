@@ -20,6 +20,7 @@ export type ShiftFormValues = {
   salesAmount: string;
   location: string;
   role: string;
+  shiftType: string;
   notes: string;
 };
 
@@ -56,6 +57,9 @@ export const shiftFormSchema = z
     salesAmount: optionalMoneyField,
     location: z.string().max(100, "Location must be 100 characters or fewer."),
     role: z.string().max(100, "Role must be 100 characters or fewer."),
+    shiftType: z
+      .string()
+      .max(100, "Shift type must be 100 characters or fewer."),
     notes: z.string().max(1000, "Notes must be 1000 characters or fewer."),
   })
   .superRefine((values, context) => {
@@ -212,6 +216,7 @@ export function getDefaultShiftFormValues(): ShiftFormValues {
     salesAmount: "",
     location: "",
     role: "",
+    shiftType: "",
     notes: "",
   };
 }
@@ -232,6 +237,7 @@ export function getShiftFormValuesFromShiftRecord(
     salesAmount: row.salesAmount !== null ? row.salesAmount.toFixed(2) : "",
     location: row.location ?? "",
     role: row.role ?? "",
+    shiftType: row.shiftType ?? "",
     notes: row.notes ?? "",
   };
 }

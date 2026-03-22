@@ -151,6 +151,7 @@ function runChecks() {
       tipPct: null,
       location: null,
       role: null,
+      shiftType: null,
       notes: null,
     },
   ];
