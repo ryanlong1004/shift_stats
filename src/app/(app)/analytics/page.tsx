@@ -16,7 +16,10 @@ import {
   type ShiftListFilters,
 } from "@/lib/shift-repository";
 import { listGoals } from "@/lib/goals-repository";
-import { computeGoalProgress } from "@/lib/goals-progress";
+import {
+  computeGoalProgress,
+  computeGoalHitEstimates,
+} from "@/lib/goals-progress";
 import { getUserSettings } from "@/lib/settings-repository";
 
 type AnalyticsPageSearchParams = {
@@ -252,6 +255,13 @@ export default async function AnalyticsPage({
   const goalProgress = computeGoalProgress(
     goals,
     allRows,
+    new Date(),
+    settings.payPeriodAnchor,
+  );
+  const goalHitEstimates = computeGoalHitEstimates(
+    goalProgress,
+    snapshot.forecast,
+    snapshot.baselines,
     new Date(),
     settings.payPeriodAnchor,
   );
@@ -1238,6 +1248,109 @@ export default async function AnalyticsPage({
       </section>
 
       <GoalProgressPanel goals={goalProgress} />
+
+      {goalHitEstimates.length > 0 ? (
+        <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Phase 4 diagnostics
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">
+                Goal hit probability
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500">
+              Based on 30-day daily mean and volatility
+            </p>
+          </div>
+
+          <ul className="mt-4 space-y-3">
+            {goalHitEstimates.map((est) => {
+              const probClass =
+                est.hitProbabilityPct >= 70
+                  ? "text-emerald-700"
+                  : est.hitProbabilityPct >= 40
+                    ? "text-amber-700"
+                    : "text-rose-700";
+              const barClass =
+                est.hitProbabilityPct >= 70
+                  ? "bg-emerald-500"
+                  : est.hitProbabilityPct >= 40
+                    ? "bg-amber-400"
+                    : "bg-rose-400";
+              const metricLabel =
+                est.metricType === "takeHome"
+                  ? "Take-home"
+                  : est.metricType === "hours"
+                    ? "Hours"
+                    : "Avg hourly";
+              const periodLabel =
+                est.period.charAt(0).toUpperCase() + est.period.slice(1);
+
+              return (
+                <li
+                  key={est.id}
+                  className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-4"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {periodLabel} {metricLabel} goal
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Target:{" "}
+                        {est.metricType === "hours"
+                          ? `${est.targetValue.toFixed(2)} hrs`
+                          : formatCurrency(est.targetValue)}{" "}
+                        · Current:{" "}
+                        {est.metricType === "hours"
+                          ? `${est.current.toFixed(2)} hrs`
+                          : formatCurrency(est.current)}
+                      </p>
+                    </div>
+                    <span className={`text-2xl font-bold ${probClass}`}>
+                      {est.hitProbabilityPct}%
+                    </span>
+                  </div>
+
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className={`h-full rounded-full transition-all ${barClass}`}
+                      style={{ width: `${est.hitProbabilityPct}%` }}
+                    />
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700">
+                      Remaining:{" "}
+                      {est.metricType === "hours"
+                        ? `${est.remaining.toFixed(2)} hrs`
+                        : formatCurrency(est.remaining)}
+                    </span>
+                    {est.metricType !== "avgHourly" ? (
+                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700">
+                        Projected additional:{" "}
+                        {est.metricType === "hours"
+                          ? `${est.projectedAdditional.toFixed(2)} hrs`
+                          : formatCurrency(est.projectedAdditional)}
+                      </span>
+                    ) : null}
+                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700">
+                      {est.daysRemainingInPeriod} days remaining
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-3 py-1 font-medium ${est.onTrack ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}
+                    >
+                      {est.onTrack ? "On track" : "At risk"}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }
