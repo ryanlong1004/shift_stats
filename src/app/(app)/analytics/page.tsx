@@ -985,33 +985,35 @@ export default async function AnalyticsPage({
             {snapshot.topCombinations.map((combo, index) => (
               <li
                 key={combo.label}
-                className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-3"
+                className="rounded-2xl border border-slate-900/10 bg-slate-50 px-4 py-3"
               >
-                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-                  {index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900">
-                    {combo.label}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {combo.shifts} {combo.shifts === 1 ? "shift" : "shifts"}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-snug text-slate-900">
+                      {combo.label}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {combo.shifts} {combo.shifts === 1 ? "shift" : "shifts"}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-shrink-0 gap-6 text-xs">
-                  <div className="text-right">
+                <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                  <div>
                     <p className="text-slate-500">Median earned</p>
                     <p className="font-semibold text-slate-900">
                       {formatCurrency(combo.medianEarned)}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div>
                     <p className="text-slate-500">Median $/hr</p>
                     <p className="font-semibold text-slate-900">
                       {formatCurrency(combo.medianHourlyRate)}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div>
                     <p className="text-slate-500">Avg earned</p>
                     <p className="font-medium text-slate-700">
                       {formatCurrency(combo.avgEarned)}
