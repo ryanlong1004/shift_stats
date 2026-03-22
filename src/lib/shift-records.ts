@@ -101,20 +101,16 @@ export function buildShiftSnapshot(rows: ShiftRecord[]): ShiftSnapshot {
     return best;
   }, rows[0] ?? null);
 
-  const weekdayMap = new Map<string, { earned: number; hours: number }>();
+  const weekdayMap = new Map<string, number>();
 
   for (const row of rows) {
     const weekday = getWeekdayFromShiftDate(row.shiftDate);
-    const current = weekdayMap.get(weekday) ?? { earned: 0, hours: 0 };
-    current.earned += row.totalEarned;
-    current.hours += row.hoursWorked;
-    weekdayMap.set(weekday, current);
+    const currentBest = weekdayMap.get(weekday) ?? 0;
+    weekdayMap.set(weekday, Math.max(currentBest, row.hourlyRate));
   }
 
   const bestWeekday = Array.from(weekdayMap.entries()).reduce(
-    (best, [dayName, totals]) => {
-      const rate = totals.hours > 0 ? totals.earned / totals.hours : 0;
-
+    (best, [dayName, rate]) => {
       if (!best || rate > best.rate) {
         return { dayName, rate };
       }
@@ -256,22 +252,18 @@ export function buildDashboardSnapshot(
     },
   };
 
-  const weekdayMap = new Map<string, { earned: number; hours: number }>();
+  const weekdayMap = new Map<string, number>();
 
   for (const row of sortedRows) {
     const weekday = getWeekdayFromShiftDate(row.shiftDate);
-    const current = weekdayMap.get(weekday) ?? { earned: 0, hours: 0 };
-    current.earned += row.totalEarned;
-    current.hours += row.hoursWorked;
-    weekdayMap.set(weekday, current);
+    const currentBest = weekdayMap.get(weekday) ?? 0;
+    weekdayMap.set(weekday, Math.max(currentBest, row.hourlyRate));
   }
 
-  const weekdaySeries = Array.from(weekdayMap.entries()).map(
-    ([label, totals]) => ({
-      label: label.slice(0, 3),
-      hourlyRate: round(totals.hours > 0 ? totals.earned / totals.hours : 0),
-    }),
-  );
+  const weekdaySeries = Array.from(weekdayMap.entries()).map(([label, rate]) => ({
+    label: label.slice(0, 3),
+    hourlyRate: round(rate),
+  }));
 
   // Find best weekday rate from the weekdaySeries to ensure consistency
   const bestWeekdayEntry = weekdaySeries.reduce(
@@ -286,7 +278,7 @@ export function buildDashboardSnapshot(
 
   const insights = [
     `Average shift earnings are ${round(base.averageShiftEarnings).toFixed(2)} dollars across the current data.`,
-    `${bestWeekdayEntry?.label ?? "N/A"} is the strongest weekday at ${(bestWeekdayEntry?.hourlyRate ?? 0).toFixed(2)} dollars per hour.`,
+    `${base.bestWeekday} is the strongest weekday at ${(bestWeekdayEntry?.hourlyRate ?? 0).toFixed(2)} dollars per hour.`,
     base.bestShift
       ? `The top shift is ${base.bestShift.shiftDate} at ${base.bestShift.totalEarned.toFixed(2)} total earned over ${base.bestShift.hoursWorked.toFixed(2)} hours.`
       : "No best shift is available until at least one shift exists.",
