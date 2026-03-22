@@ -370,7 +370,7 @@ export default async function AnalyticsPage({
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
           Analytics
         </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           Performance trends
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
@@ -466,7 +466,7 @@ export default async function AnalyticsPage({
           </select>
         </label>
 
-        <div className="md:col-span-2 xl:col-span-6 flex items-center gap-3">
+        <div className="md:col-span-2 xl:col-span-6 flex flex-wrap items-center gap-2">
           <button
             type="submit"
             className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
@@ -480,61 +480,63 @@ export default async function AnalyticsPage({
             Clear
           </Link>
 
-          <label className="ml-auto inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-            <input
-              type="checkbox"
-              name="excludeOutliers"
-              value="1"
-              defaultChecked={excludeOutliers}
-              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-            />
-            Exclude anomalies
-          </label>
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+            <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              <input
+                type="checkbox"
+                name="excludeOutliers"
+                value="1"
+                defaultChecked={excludeOutliers}
+                className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+              />
+              Exclude anomalies
+            </label>
 
-          <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-            Sensitivity
-            <select
-              name="outlierSensitivity"
-              defaultValue={selectedOutlierSensitivity.value}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
-            >
-              {OUTLIER_SENSITIVITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              Sensitivity
+              <select
+                name="outlierSensitivity"
+                defaultValue={selectedOutlierSensitivity.value}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
+              >
+                {OUTLIER_SENSITIVITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-            Forecast scenario
-            <select
-              name="forecastScenario"
-              defaultValue={selectedForecastScenario.value}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
-            >
-              {FORECAST_SCENARIOS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              Forecast scenario
+              <select
+                name="forecastScenario"
+                defaultValue={selectedForecastScenario.value}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
+              >
+                {FORECAST_SCENARIOS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-            Forecast horizon
-            <select
-              name="forecastHorizon"
-              defaultValue={selectedForecastHorizon.value}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
-            >
-              {FORECAST_HORIZON_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              Forecast horizon
+              <select
+                name="forecastHorizon"
+                defaultValue={selectedForecastHorizon.value}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs outline-none transition focus:border-slate-900"
+              >
+                {FORECAST_HORIZON_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
       </form>
 
@@ -598,7 +600,7 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Phase 4 diagnostics
@@ -789,7 +791,7 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Phase 4 diagnostics
@@ -847,7 +849,7 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Phase 4 diagnostics
@@ -964,7 +966,7 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Phase 4 diagnostics
@@ -1029,7 +1031,7 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Phase 4 diagnostics
@@ -1251,7 +1253,7 @@ export default async function AnalyticsPage({
 
       {goalHitEstimates.length > 0 ? (
         <section className="rounded-3xl border border-slate-900/10 bg-white/85 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                 Phase 4 diagnostics

@@ -115,7 +115,7 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex min-w-16 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium ${
+                  className={`flex min-w-[44px] flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium ${
                     isActive ? "bg-slate-950 text-white" : "text-slate-600"
                   }`}
                 >
