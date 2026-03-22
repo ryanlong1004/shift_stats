@@ -90,6 +90,14 @@ function formatSignedPct(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
+function formatSignedCurrency(value: number) {
+  if (value > 0) {
+    return `+${formatCurrency(value)}`;
+  }
+
+  return formatCurrency(value);
+}
+
 function round(value: number) {
   return Number(value.toFixed(2));
 }
@@ -329,6 +337,16 @@ export default async function AnalyticsPage({
   const scenarioProjectedDaily =
     snapshot.forecast.horizonDays > 0
       ? scenarioExpectedProjection / snapshot.forecast.horizonDays
+      : 0;
+  const recent14DailyAvg = round(
+    snapshot.forecast.historyDailyEarned
+      .slice(-14)
+      .reduce((sum, value) => sum + value, 0) / 14,
+  );
+  const projectionDailyDelta = round(scenarioProjectedDaily - recent14DailyAvg);
+  const projectionDailyDeltaPct =
+    recent14DailyAvg > 0
+      ? round((projectionDailyDelta / recent14DailyAvg) * 100)
       : 0;
   const sparkline = getForecastSparkline(
     snapshot.forecast.historyDailyEarned,
@@ -727,6 +745,17 @@ export default async function AnalyticsPage({
           <p className="mt-1 text-sm text-slate-700">
             Scenario: {selectedForecastScenario.label}
           </p>
+          <p className="mt-1 text-sm text-slate-700">
+            Recent 14d daily avg: {formatCurrency(recent14DailyAvg)}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-700">
+              Daily delta vs 14d: {formatSignedCurrency(projectionDailyDelta)}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-medium text-slate-700">
+              Delta pct: {formatSignedPct(projectionDailyDeltaPct)}
+            </span>
+          </div>
         </div>
 
         <div className="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
