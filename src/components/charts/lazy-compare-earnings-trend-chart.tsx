@@ -23,6 +23,8 @@ type EarningsPoint = {
   location: string | null;
   role: string | null;
   shiftType: string | null;
+  isAnomaly?: boolean;
+  anomalyReasons?: string[];
 };
 
 export function LazyCompareEarningsTrendChart({

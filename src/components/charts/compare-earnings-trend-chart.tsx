@@ -21,6 +21,8 @@ type EarningsPoint = {
   location: string | null;
   role: string | null;
   shiftType: string | null;
+  isAnomaly?: boolean;
+  anomalyReasons?: string[];
 };
 
 function formatShiftLabel(value: string | null) {
@@ -47,6 +49,11 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       <p className="text-slate-300">
         Shift type: {formatShiftLabel(payload[0].payload.shiftType)}
       </p>
+      {payload[0].payload.isAnomaly ? (
+        <p className="text-rose-300">
+          Anomaly: {(payload[0].payload.anomalyReasons ?? []).join(" + ")}
+        </p>
+      ) : null}
       {payload.map((entry, i) => (
         <p key={i} className="text-slate-300">
           {entry.dataKey === "earned"
@@ -71,6 +78,9 @@ type MergedPoint = {
   location: string | null;
   role: string | null;
   shiftType: string | null;
+  isAnomaly?: boolean;
+  anomalyReasons?: string[];
+  anomalyEarned?: number;
   prevEarned?: number;
   prevHourlyRate?: number;
 };
@@ -88,6 +98,9 @@ function mergeData(
     location: current[i]?.location ?? prev[i]?.location ?? null,
     role: current[i]?.role ?? prev[i]?.role ?? null,
     shiftType: current[i]?.shiftType ?? prev[i]?.shiftType ?? null,
+    isAnomaly: current[i]?.isAnomaly ?? false,
+    anomalyReasons: current[i]?.anomalyReasons ?? [],
+    anomalyEarned: current[i]?.isAnomaly ? current[i].earned : undefined,
     prevEarned: prev[i]?.earned,
     prevHourlyRate: prev[i]?.hourlyRate,
   }));
@@ -102,7 +115,14 @@ export function CompareEarningsTrendChart({
 }) {
   const [compare, setCompare] = useState(false);
 
-  const chartData = compare ? mergeData(data, prevData) : data;
+  const chartData: MergedPoint[] = compare
+    ? mergeData(data, prevData)
+    : data.map((point) => ({
+        ...point,
+        isAnomaly: point.isAnomaly ?? false,
+        anomalyReasons: point.anomalyReasons ?? [],
+        anomalyEarned: point.isAnomaly ? point.earned : undefined,
+      }));
   const hasPrev = prevData.length > 0;
 
   const formatAxisCurrency = (value: number) => {
@@ -142,6 +162,10 @@ export function CompareEarningsTrendChart({
             earnings
           </span>
         )}
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Anomaly
+          marker
+        </span>
       </div>
       <div className="mt-3 h-[270px] w-full sm:h-[288px]">
         <ResponsiveContainer
@@ -191,6 +215,15 @@ export function CompareEarningsTrendChart({
               stroke="#d97706"
               strokeWidth={3}
               dot={{ r: 4 }}
+            />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="anomalyEarned"
+              stroke="transparent"
+              dot={{ r: 5, fill: "#f43f5e", stroke: "#fff", strokeWidth: 1.5 }}
+              activeDot={{ r: 6, fill: "#e11d48", stroke: "#fff", strokeWidth: 1.5 }}
+              connectNulls={false}
             />
             {compare && (
               <Line

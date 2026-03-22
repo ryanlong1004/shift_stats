@@ -557,6 +557,8 @@ export async function getPreviousPeriodSeries(
       location: row.location,
       role: row.role,
       shiftType: row.shiftType,
+      isAnomaly: false,
+      anomalyReasons: [],
     }));
 }
 

@@ -58,6 +58,8 @@ export type DashboardSnapshot = ShiftSnapshot & {
     location: string | null;
     role: string | null;
     shiftType: string | null;
+    isAnomaly: boolean;
+    anomalyReasons: string[];
   }>;
   weekdaySeries: Array<{
     label: string;
@@ -321,6 +323,7 @@ function getOutlierDiagnostics(
 ): {
   diagnostics: OutlierDiagnostics;
   inlierRows: ShiftRecord[];
+  anomalyReasonById: Map<string, string[]>;
 } {
   const totalEarnedBand = buildIqrBand(
     rows.map((row) => row.totalEarned),
@@ -336,6 +339,7 @@ function getOutlierDiagnostics(
     reasons: string[];
   }> = [];
   const inlierRows: ShiftRecord[] = [];
+  const anomalyReasonById = new Map<string, string[]>();
 
   for (const row of rows) {
     const reasons: string[] = [];
@@ -361,6 +365,7 @@ function getOutlierDiagnostics(
         getBandScore(row.totalEarned, totalEarnedBand) +
         getBandScore(row.hourlyRate, hourlyRateBand);
 
+      anomalyReasonById.set(row.id, reasons);
       anomalies.push({ row, score, reasons });
       continue;
     }
@@ -402,6 +407,7 @@ function getOutlierDiagnostics(
       topAnomalies,
     },
     inlierRows,
+    anomalyReasonById,
   };
 }
 
@@ -484,7 +490,11 @@ export function buildDashboardSnapshot(
   const sortedRows = [...rows].sort((left, right) =>
     right.shiftDate.localeCompare(left.shiftDate),
   );
-  const { diagnostics: rawOutlierDiagnostics, inlierRows } =
+  const {
+    diagnostics: rawOutlierDiagnostics,
+    inlierRows,
+    anomalyReasonById,
+  } =
     getOutlierDiagnostics(sortedRows, outlierIqrMultiplier);
   const excludeOutliers = options.excludeOutliers === true;
   const workingRows = excludeOutliers ? inlierRows : sortedRows;
@@ -649,6 +659,8 @@ export function buildDashboardSnapshot(
       location: row.location,
       role: row.role,
       shiftType: row.shiftType,
+      isAnomaly: anomalyReasonById.has(row.id),
+      anomalyReasons: anomalyReasonById.get(row.id) ?? [],
     })),
     weekdaySeries,
     insights,
