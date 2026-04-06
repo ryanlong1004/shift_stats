@@ -171,7 +171,7 @@ export default async function SchedulePage({
                 <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-600">
                   <p>No shifts scheduled.</p>
                   <Link
-                    href="/shifts/new"
+                    href={`/shifts/new?date=${dateKey}`}
                     className="mt-2 inline-flex items-center rounded-full bg-slate-950 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
                   >
                     Add shift

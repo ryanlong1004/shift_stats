@@ -1,8 +1,21 @@
 import { ShiftForm } from "@/components/shift-form";
 import { isDatabaseConfigured, listShiftRecords } from "@/lib/shift-repository";
 import { getUserSettings } from "@/lib/settings-repository";
+import { getDefaultShiftFormValues } from "@/lib/shift-form";
 
-export default async function NewShiftPage() {
+type NewShiftPageSearchParams = {
+  date?: string;
+};
+
+export default async function NewShiftPage({
+  searchParams,
+}: {
+  searchParams: Promise<NewShiftPageSearchParams>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const dateParam = resolvedSearchParams.date;
+  const prefillDate =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : undefined;
   const allRows = await listShiftRecords();
   const locationOptions = Array.from(
     new Set(allRows.map((row) => row.location).filter(Boolean)),
@@ -36,6 +49,11 @@ export default async function NewShiftPage() {
 
       <ShiftForm
         mode="create"
+        initialValues={
+          prefillDate
+            ? { ...getDefaultShiftFormValues(), shiftDate: prefillDate }
+            : undefined
+        }
         persistenceEnabled={isDatabaseConfigured()}
         locationOptions={locationOptions}
         roleOptions={roleOptions}

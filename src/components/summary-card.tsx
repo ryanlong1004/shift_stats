@@ -45,7 +45,12 @@ export function SummaryCard({
             isUp ? "text-emerald-500" : "text-rose-500"
           }`}
         >
-          {isUp ? "▲" : "▼"} {formatCurrency(Math.abs(deltaAmount))}
+          {isUp ? "▲" : "▼"}{" "}
+          {kind === "currency"
+            ? formatCurrency(Math.abs(deltaAmount))
+            : kind === "decimal"
+              ? formatDecimal(Math.abs(deltaAmount))
+              : String(Math.abs(deltaAmount))}
           {deltaPct !== null
             ? ` (${isUp ? "+" : ""}${deltaPct.toFixed(0)}%)`
             : ""}
