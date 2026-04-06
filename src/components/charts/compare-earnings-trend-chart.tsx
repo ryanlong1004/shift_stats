@@ -222,7 +222,12 @@ export function CompareEarningsTrendChart({
               dataKey="anomalyEarned"
               stroke="transparent"
               dot={{ r: 5, fill: "#f43f5e", stroke: "#fff", strokeWidth: 1.5 }}
-              activeDot={{ r: 6, fill: "#e11d48", stroke: "#fff", strokeWidth: 1.5 }}
+              activeDot={{
+                r: 6,
+                fill: "#e11d48",
+                stroke: "#fff",
+                strokeWidth: 1.5,
+              }}
               connectNulls={false}
             />
             {compare && (

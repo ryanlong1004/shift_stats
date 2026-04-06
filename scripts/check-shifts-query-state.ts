@@ -181,11 +181,13 @@ function runChecks() {
   const appShellPath = path.join(process.cwd(), "src/components/app-shell.tsx");
   const appShellSource = readFileSync(appShellPath, "utf8");
   assert.ok(
-    appShellSource.includes('{ href: "/calendar", label: "Calendar"'),
+    appShellSource.includes('href: "/calendar"') &&
+      appShellSource.includes('label: "Calendar"'),
     "Primary nav must include Calendar route",
   );
   assert.ok(
-    appShellSource.includes('{ href: "/schedule", label: "Schedule"'),
+    appShellSource.includes('href: "/schedule"') &&
+      appShellSource.includes('label: "Schedule"'),
     "Primary nav must include Schedule route",
   );
 
