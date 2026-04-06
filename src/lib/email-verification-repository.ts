@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 
 import { getPrismaClient } from "@/lib/prisma";
+import { sendVerificationEmail } from "@/lib/mailer";
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const genericVerificationRequestMessage =
@@ -30,7 +31,10 @@ function shouldExposeVerificationUrl() {
   );
 }
 
-export async function issueEmailVerificationToken(userId: string) {
+export async function issueEmailVerificationToken(
+  userId: string,
+  toEmail?: string,
+) {
   const prisma = getPrismaClient();
   const token = randomBytes(32).toString("hex");
   const hashedToken = tokenHash(token);
@@ -43,12 +47,22 @@ export async function issueEmailVerificationToken(userId: string) {
     },
   });
 
+  const baseUrl =
+    process.env.NEXTAUTH_URL ?? process.env.AUTH_URL ?? "http://localhost:3000";
+  const verificationUrl = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${token}`;
+
+  // Always attempt to send the email when we have an address to send to.
+  if (toEmail) {
+    try {
+      await sendVerificationEmail(toEmail, verificationUrl);
+    } catch (err) {
+      console.error("[email-verification] sendVerificationEmail failed:", err);
+    }
+  }
+
   if (!shouldExposeVerificationUrl()) {
     return { verificationUrl: undefined };
   }
-
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const verificationUrl = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${token}`;
 
   return { verificationUrl };
 }
@@ -83,7 +97,7 @@ export async function requestEmailVerification(values: unknown) {
     };
   }
 
-  const issued = await issueEmailVerificationToken(user.id);
+  const issued = await issueEmailVerificationToken(user.id, email);
 
   return {
     ok: true as const,

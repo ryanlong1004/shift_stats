@@ -81,7 +81,7 @@ export async function createUserAccount(values: SignupValues) {
   const requiresEmailVerification = isEmailVerificationRequired();
 
   if (requiresEmailVerification) {
-    const issued = await issueEmailVerificationToken(user.id);
+    const issued = await issueEmailVerificationToken(user.id, user.email);
     verificationUrl = issued.verificationUrl;
   }
 

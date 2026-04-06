@@ -95,6 +95,39 @@ export async function sendPasswordResetEmail(
   });
 }
 
+export async function sendVerificationEmail(
+  toEmail: string,
+  verificationUrl: string,
+): Promise<void> {
+  const transporter = getTransporter();
+
+  if (!transporter) {
+    throw new Error("SMTP is not configured.");
+  }
+
+  const senderAddress = process.env.SMTP_USER!;
+
+  await transporter.sendMail({
+    from: `"ShiftStats" <${senderAddress}>`,
+    to: toEmail,
+    subject: "Verify your ShiftStats email address",
+    text: [
+      "Please verify your email address for ShiftStats.",
+      "",
+      `Verification link (expires in 24 hours): ${verificationUrl}`,
+      "",
+      "If you did not create an account, you can safely ignore this email.",
+    ].join("\n"),
+    html: `
+      <p>Please verify your email address to activate your ShiftStats account.</p>
+      <p>
+        <a href="${escapeHtml(verificationUrl)}" style="background:#0f172a;color:#fff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600">Verify email</a>
+      </p>
+      <p style="font-size:12px;color:#64748b">This link expires in 24 hours. If you did not sign up for ShiftStats, ignore this email.</p>
+    `,
+  });
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
