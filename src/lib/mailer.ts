@@ -62,6 +62,39 @@ export function isMailerConfigured(): boolean {
   );
 }
 
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  resetUrl: string,
+): Promise<void> {
+  const transporter = getTransporter();
+
+  if (!transporter) {
+    throw new Error("SMTP is not configured.");
+  }
+
+  const senderAddress = process.env.SMTP_USER!;
+
+  await transporter.sendMail({
+    from: `"ShiftStats" <${senderAddress}>`,
+    to: toEmail,
+    subject: "Reset your ShiftStats password",
+    text: [
+      "You requested a password reset for your ShiftStats account.",
+      "",
+      `Reset link (expires in 1 hour): ${resetUrl}`,
+      "",
+      "If you did not request this, you can safely ignore this email.",
+    ].join("\n"),
+    html: `
+      <p>You requested a password reset for your ShiftStats account.</p>
+      <p>
+        <a href="${escapeHtml(resetUrl)}" style="background:#0f172a;color:#fff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600">Reset password</a>
+      </p>
+      <p style="font-size:12px;color:#64748b">This link expires in 1 hour. If you did not request a reset, ignore this email.</p>
+    `,
+  });
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")

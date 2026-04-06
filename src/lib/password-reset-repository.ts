@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { hashPassword } from "@/lib/passwords";
 import { getPrismaClient } from "@/lib/prisma";
+import { sendPasswordResetEmail } from "@/lib/mailer";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 
@@ -86,9 +87,19 @@ export async function requestPasswordReset(values: unknown) {
     message: genericRequestMessage,
   };
 
+  const baseUrl =
+    process.env.NEXTAUTH_URL ?? process.env.AUTH_URL ?? "http://localhost:3000";
+  const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
+
   if (shouldExposeResetUrl()) {
-    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-    result.resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
+    result.resetUrl = resetUrl;
+  }
+
+  // Always attempt to send the email; log but don't surface SMTP errors to the user.
+  try {
+    await sendPasswordResetEmail(email, resetUrl);
+  } catch (err) {
+    console.error("[password-reset] sendPasswordResetEmail failed:", err);
   }
 
   return result;
