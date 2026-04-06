@@ -77,9 +77,16 @@ export async function POST(request: Request) {
       subject: parsed.data.subject,
       message: parsed.data.message,
     });
-  } catch {
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "Unknown error";
+    console.error("[contact] sendMail failed:", detail);
     return NextResponse.json(
-      { message: "Failed to send message. Please try again later." },
+      {
+        message:
+          process.env.NODE_ENV !== "production"
+            ? `Failed to send message: ${detail}`
+            : "Failed to send message. Please try again later.",
+      },
       { status: 500 },
     );
   }
