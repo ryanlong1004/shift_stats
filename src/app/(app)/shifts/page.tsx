@@ -132,7 +132,7 @@ export default async function ShiftsPage({
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
             Shift history
           </h1>
-          <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:text-base sm:leading-8">
             Filter by time range, location, role, and shift type to quickly find
             the shifts you need.
           </p>
@@ -165,7 +165,7 @@ export default async function ShiftsPage({
 
       <form
         method="GET"
-        className="grid gap-4 rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
+        className="grid grid-cols-2 gap-4 rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-3 xl:grid-cols-6"
       >
         <input type="hidden" name="sortBy" value={sortBy} />
         <input type="hidden" name="sortOrder" value={sortOrder} />
@@ -255,7 +255,7 @@ export default async function ShiftsPage({
           </select>
         </label>
 
-        <div className="md:col-span-2 xl:col-span-6 flex items-center gap-3">
+        <div className="col-span-2 flex items-center gap-3 md:col-span-3 xl:col-span-6">
           <button
             type="submit"
             className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
@@ -320,7 +320,20 @@ export default async function ShiftsPage({
         </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Mobile: compact single-line status */}
+      <div className="md:hidden rounded-2xl border border-slate-900/10 bg-white/80 px-4 py-3 text-xs text-slate-600 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+        <span className="font-medium">
+          {preset === "all" ? "All shifts" : preset}
+        </span>
+        {resolvedSearchParams.location
+          ? ` · ${resolvedSearchParams.location}`
+          : ""}
+        {" · "}
+        {sortOptions.find((o) => o.value === sortBy)?.label ?? "Date"} ({sortOrder})
+      </div>
+
+      {/* Desktop: 4-card status strip */}
+      <div className="hidden gap-4 md:grid md:grid-cols-4">
         <div className="rounded-[1.25rem] border border-slate-900/10 bg-white/80 px-4 py-4 text-sm text-slate-700 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
           Current filter: {preset === "all" ? "All shifts" : preset}
         </div>

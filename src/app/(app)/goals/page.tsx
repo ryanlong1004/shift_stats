@@ -13,7 +13,7 @@ export default async function GoalsPage() {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           Earnings &amp; hours targets
         </h1>
-        <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:text-base sm:leading-8">
           Set daily, weekly, monthly, or yearly targets for take-home pay, hours
           worked, or average hourly rate. Progress is shown on the dashboard and
           analytics pages.

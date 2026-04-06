@@ -85,7 +85,7 @@ export default async function DashboardPage({
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           Earnings overview
         </h1>
-        <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:text-base sm:leading-8">
           Track your recent performance with weekly and monthly totals, hourly
           trends, and key shift highlights.
         </p>

@@ -123,7 +123,7 @@ export default async function CalendarPage({
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           Monthly earnings map
         </h1>
-        <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:text-base sm:leading-8">
           Scan daily totals by month. Darker bars indicate higher earnings for
           the month. Select a day to jump into filtered shift history.
         </p>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,10 +9,12 @@ import {
   ChartNoAxesCombined,
   LayoutDashboard,
   MessageSquare,
+  MoreHorizontal,
   PlusCircle,
   Settings,
   TableProperties,
   Target,
+  X,
 } from "lucide-react";
 
 import { SignOutButton } from "@/components/sign-out-button";
@@ -68,6 +71,9 @@ const navItems = [
   },
 ];
 
+const primaryNavItems = navItems.slice(0, 4);
+const overflowNavItems = navItems.slice(4);
+
 export function AppShell({
   children,
   currentUserEmail,
@@ -76,10 +82,13 @@ export function AppShell({
   currentUserEmail?: string | null;
 }) {
   const pathname = usePathname();
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const activeHref = navItems
     .filter((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
+  const overflowIsActive = overflowNavItems.some((i) => activeHref === i.href);
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,_#f7f0e7_0%,_#eff4f8_100%)] text-slate-900">
@@ -147,15 +156,64 @@ export function AppShell({
             </div>
           </header>
 
-          <div className="flex-1 px-5 py-6 lg:px-8 lg:py-8">{children}</div>
+          <div className="flex-1 px-5 pt-6 pb-28 lg:px-8 lg:py-8">{children}</div>
 
           <footer className="hidden border-t border-slate-900/10 px-8 py-4 text-xs text-slate-400 lg:block">
             &copy; {new Date().getFullYear()} Ryan Long &mdash; ShiftStats.{" "}
             <span>For personal, noncommercial use only.</span>
           </footer>
 
+          {showMoreMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40 lg:hidden"
+                onClick={() => setShowMoreMenu(false)}
+              />
+              <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t border-slate-900/10 bg-white/97 px-4 pb-4 pt-4 shadow-[0_-16px_60px_rgba(15,23,42,0.16)] backdrop-blur lg:hidden">
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    More
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreMenu(false)}
+                    className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {overflowNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeHref === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setShowMoreMenu(false)}
+                        className={`flex flex-col items-center gap-2 rounded-2xl p-3 text-xs font-medium transition ${
+                          isActive
+                            ? "bg-slate-950 text-white"
+                            : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+                <p className="mt-4 text-center text-[10px] text-slate-400">
+                  &copy; {new Date().getFullYear()} Ryan Long &mdash; Personal
+                  use only
+                </p>
+                <div className="h-14" />
+              </div>
+            </>
+          )}
+
           <nav className="sticky bottom-0 z-20 flex border-t border-slate-900/10 bg-white/90 px-1 py-1 backdrop-blur lg:hidden">
-            {navItems.map((item) => {
+            {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeHref === item.href;
 
@@ -163,7 +221,7 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium ${
+                  className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium transition ${
                     isActive ? "bg-slate-950 text-white" : "text-slate-600"
                   }`}
                 >
@@ -172,11 +230,19 @@ export function AppShell({
                 </Link>
               );
             })}
+            <button
+              type="button"
+              onClick={() => setShowMoreMenu((prev) => !prev)}
+              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium transition ${
+                overflowIsActive || showMoreMenu
+                  ? "bg-slate-950 text-white"
+                  : "text-slate-600"
+              }`}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              More
+            </button>
           </nav>
-          <p className="border-t border-slate-900/10 px-4 py-2 text-center text-[10px] text-slate-400 lg:hidden">
-            &copy; {new Date().getFullYear()} Ryan Long &mdash; Personal use
-            only
-          </p>
         </div>
       </div>
     </div>

@@ -24,7 +24,7 @@ export default async function ContactPage() {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           Get in touch
         </h1>
-        <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:text-base sm:leading-8">
           Report a bug, request a feature, or ask a question. We&apos;ll get
           back to you as soon as possible.
         </p>

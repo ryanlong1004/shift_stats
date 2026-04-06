@@ -38,7 +38,7 @@ export function SummaryCard({
       >
         {label}
       </p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight">{formatted}</p>
+      <p className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">{formatted}</p>
       {delta && deltaAmount !== null && delta.prev > 0 ? (
         <p
           className={`mt-2 text-xs font-medium ${

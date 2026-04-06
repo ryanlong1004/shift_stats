@@ -373,7 +373,7 @@ export default async function AnalyticsPage({
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           Performance trends
         </h1>
-        <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:text-base sm:leading-8">
           Explore how earnings and hourly rates change by date, weekday,
           location, role, and shift type.
         </p>
@@ -381,7 +381,7 @@ export default async function AnalyticsPage({
 
       <form
         method="GET"
-        className="grid gap-4 rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-6"
+        className="grid grid-cols-2 gap-4 rounded-3xl border border-slate-900/10 bg-white/85 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] md:grid-cols-3 xl:grid-cols-6"
       >
         <label className="space-y-2 text-sm text-slate-700">
           <span className="font-medium">Preset</span>
@@ -466,7 +466,7 @@ export default async function AnalyticsPage({
           </select>
         </label>
 
-        <div className="md:col-span-2 xl:col-span-6 flex flex-wrap items-center gap-2">
+        <div className="col-span-2 flex flex-wrap items-center gap-2 md:col-span-3 xl:col-span-6">
           <button
             type="submit"
             className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
