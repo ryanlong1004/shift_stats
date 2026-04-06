@@ -233,7 +233,7 @@ function runChecks() {
     "Schedule page should guard invalid week query values",
   );
   assert.ok(
-    schedulePageSource.includes('href="/shifts/new"'),
+    schedulePageSource.includes("href={`/shifts/new?date="),
     "Schedule page should include add-shift shortcut on empty days",
   );
 

@@ -7,6 +7,7 @@ import {
   CalendarRange,
   ChartNoAxesCombined,
   LayoutDashboard,
+  MessageSquare,
   PlusCircle,
   Settings,
   TableProperties,
@@ -53,6 +54,12 @@ const navItems = [
     icon: CalendarRange,
   },
   { href: "/goals", label: "Goals", mobileLabel: "Goals", icon: Target },
+  {
+    href: "/contact",
+    label: "Contact",
+    mobileLabel: "Contact",
+    icon: MessageSquare,
+  },
   {
     href: "/settings",
     label: "Settings",
