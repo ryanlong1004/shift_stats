@@ -329,7 +329,8 @@ export default async function ShiftsPage({
           ? ` · ${resolvedSearchParams.location}`
           : ""}
         {" · "}
-        {sortOptions.find((o) => o.value === sortBy)?.label ?? "Date"} ({sortOrder})
+        {sortOptions.find((o) => o.value === sortBy)?.label ?? "Date"} (
+        {sortOrder})
       </div>
 
       {/* Desktop: 4-card status strip */}

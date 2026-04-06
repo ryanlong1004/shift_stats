@@ -156,7 +156,9 @@ export function AppShell({
             </div>
           </header>
 
-          <div className="flex-1 px-5 pt-6 pb-28 lg:px-8 lg:py-8">{children}</div>
+          <div className="flex-1 px-5 pt-6 pb-28 lg:px-8 lg:py-8">
+            {children}
+          </div>
 
           <footer className="hidden border-t border-slate-900/10 px-8 py-4 text-xs text-slate-400 lg:block">
             &copy; {new Date().getFullYear()} Ryan Long &mdash; ShiftStats.{" "}
