@@ -149,6 +149,11 @@ export function AppShell({
 
           <div className="flex-1 px-5 py-6 lg:px-8 lg:py-8">{children}</div>
 
+          <footer className="hidden border-t border-slate-900/10 px-8 py-4 text-xs text-slate-400 lg:block">
+            &copy; {new Date().getFullYear()} Ryan Long &mdash; ShiftStats.{" "}
+            <span>For personal, noncommercial use only.</span>
+          </footer>
+
           <nav className="sticky bottom-0 z-20 flex border-t border-slate-900/10 bg-white/90 px-1 py-1 backdrop-blur lg:hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -168,6 +173,10 @@ export function AppShell({
               );
             })}
           </nav>
+          <p className="border-t border-slate-900/10 px-4 py-2 text-center text-[10px] text-slate-400 lg:hidden">
+            &copy; {new Date().getFullYear()} Ryan Long &mdash; Personal use
+            only
+          </p>
         </div>
       </div>
     </div>

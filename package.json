@@ -2,6 +2,7 @@
   "name": "shiftstats",
   "version": "0.1.0",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "predev": "prisma generate",
     "dev": "next dev",
