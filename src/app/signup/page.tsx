@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { SignupForm } from "@/components/signup-form";
+
+export const metadata: Metadata = {
+  title: "Create Account",
+  description: "Create a free Shiftstats account and start tracking your shifts, earnings, and hourly performance today.",
+  alternates: { canonical: "/signup" },
+};
 
 export default async function SignupPage() {
   const session = await auth();

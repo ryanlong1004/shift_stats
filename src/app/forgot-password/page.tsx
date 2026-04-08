@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
+
+export const metadata: Metadata = {
+  title: "Reset Password",
+  description: "Request a password reset link for your Shiftstats account.",
+  alternates: { canonical: "/forgot-password" },
+  robots: { index: false, follow: false },
+};
 
 export default async function ForgotPasswordPage() {
   const session = await auth();

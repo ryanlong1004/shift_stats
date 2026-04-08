@@ -31,6 +31,34 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.9),_transparent_36%),linear-gradient(135deg,_#fff6e7_0%,_#f3efe7_36%,_#dbe9f4_100%)] px-6 py-8 text-slate-900 sm:px-10 lg:px-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "Shiftstats",
+            url: "https://shift-stats.com",
+            applicationCategory: "FinanceApplication",
+            operatingSystem: "Web",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+            description:
+              "Log every shift, track earnings and hourly rates, set goals, and compare pay periods. Free shift tracking app for servers, bartenders, and hourly workers.",
+            featureList: [
+              "Shift tracking with earnings breakdown",
+              "Earnings goals and progress tracking",
+              "Calendar and weekly schedule views",
+              "Period-over-period analytics",
+              "Pay period configuration",
+              "CSV import and export",
+            ],
+          }),
+        }}
+      />
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur">
           <div className="grid gap-10 px-6 py-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:py-10">

@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { ResetPasswordForm } from "@/components/reset-password-form";
+
+export const metadata: Metadata = {
+  title: "Set New Password",
+  description: "Set a new password for your Shiftstats account.",
+  robots: { index: false, follow: false },
+};
 
 type ResetPasswordPageSearchParams = {
   token?: string;
