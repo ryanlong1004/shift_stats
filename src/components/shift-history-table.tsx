@@ -125,7 +125,7 @@ export function ShiftHistoryTable({
         <table className="w-full min-w-[980px] border-collapse text-left text-sm">
           <thead className="bg-slate-950 text-white">
             <tr>
-              <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium whitespace-nowrap">Date</th>
               <th className="px-4 py-3 font-medium">Day</th>
               <th className="px-4 py-3 font-medium">Hours</th>
               <th className="px-4 py-3 font-medium">Total</th>
@@ -143,7 +143,7 @@ export function ShiftHistoryTable({
           <tbody>
             {rows.map((row) => (
               <tr key={row.id} className="border-t border-slate-200 align-top">
-                <td className="px-4 py-3 font-medium text-slate-950">
+                <td className="px-4 py-3 font-medium text-slate-950 whitespace-nowrap">
                   {row.shiftDate}
                 </td>
                 <td className="px-4 py-3 text-slate-700">
