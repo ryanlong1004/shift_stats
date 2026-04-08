@@ -284,7 +284,9 @@ export default async function Home() {
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <LazyEarningsTrendChart data={dashboardSnapshot.earningsSeries} />
-            <LazyWeekdayPerformanceChart data={dashboardSnapshot.weekdaySeries} />
+            <LazyWeekdayPerformanceChart
+              data={dashboardSnapshot.weekdaySeries}
+            />
           </div>
         </section>
       </section>
