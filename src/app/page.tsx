@@ -34,25 +34,25 @@ export default async function Home() {
               </div>
               <div className="space-y-4">
                 <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                  Shift tracking that turns a few rows of data into real
-                  earnings insight.
+                  Know exactly what your time is worth, shift by shift.
                 </h1>
                 <p className="max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
-                  Log every shift, track compensation trends, and understand
-                  your real hourly performance across roles and locations.
+                  Log shifts, set earnings goals, explore your calendar and
+                  schedule, and compare periods side-by-side — everything you
+                  need to understand your real hourly performance.
                 </p>
                 <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                   <Link
-                    href="/login"
+                    href="/signup"
                     className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
                   >
-                    Sign in
+                    Create account
                   </Link>
                   <Link
                     href="/login"
                     className="inline-flex items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
                   >
-                    Open app
+                    Sign in
                   </Link>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export default async function Home() {
                       1
                     </span>
                     <span>
-                      Log shifts with hours, base pay, tips, and notes.
+                      Log shifts with hours, base pay, tips, roles, and notes.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
@@ -133,8 +133,8 @@ export default async function Home() {
                       2
                     </span>
                     <span>
-                      Filter and review shift history by time, location, and
-                      role.
+                      Set earnings goals and track progress with visual
+                      indicators.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
@@ -142,7 +142,26 @@ export default async function Home() {
                       3
                     </span>
                     <span>
-                      Compare trends with dashboard and analytics views.
+                      Browse your monthly calendar or weekly schedule for shift
+                      history.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/20 text-xs font-semibold text-cyan-200">
+                      4
+                    </span>
+                    <span>
+                      Compare period-over-period earnings to spot trends and
+                      improvements.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/20 text-xs font-semibold text-cyan-200">
+                      5
+                    </span>
+                    <span>
+                      Export filtered history as CSV or import from an existing
+                      file.
                     </span>
                   </li>
                 </ol>
@@ -217,20 +236,28 @@ export default async function Home() {
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <FeatureCard
-                title="Secure sign-in"
-                body="Access your workspace through protected routes designed for authenticated usage."
-              />
-              <FeatureCard
                 title="Shift tracking"
-                body="Capture dates, times, roles, compensation, and notes with live total calculations."
+                body="Capture dates, times, roles, compensation types, and notes with live total calculations."
               />
               <FeatureCard
-                title="Reporting views"
-                body="Review totals, averages, and trend charts to spot your strongest shifts."
+                title="Goals & progress"
+                body="Set weekly or monthly earnings targets and watch them fill with visual progress indicators."
               />
               <FeatureCard
-                title="Export support"
-                body="Download filtered history as CSV for payroll checks and personal records."
+                title="Calendar & schedule"
+                body="Browse a monthly calendar or navigate week-by-week to review your shift history."
+              />
+              <FeatureCard
+                title="Analytics & trends"
+                body="Period-over-period comparison charts and earnings breakdowns to spot your strongest shifts."
+              />
+              <FeatureCard
+                title="Pay period support"
+                body="Configure your pay period start day and filter earnings by pay cycle across all views."
+              />
+              <FeatureCard
+                title="CSV import & export"
+                body="Import data from an existing file or download filtered shift history for payroll records."
               />
             </div>
           </div>
