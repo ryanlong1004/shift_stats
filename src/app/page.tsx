@@ -9,9 +9,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { LazyEarningsTrendChart } from "@/components/charts/lazy-earnings-trend-chart";
+import { LazyWeekdayPerformanceChart } from "@/components/charts/lazy-weekday-performance-chart";
 import { formatCurrency, formatDecimal } from "@/lib/formatters";
 import { isDatabaseConfigured } from "@/lib/shift-repository";
-import { getSampleShiftSnapshot } from "@/lib/sample-data";
+import {
+  getSampleDashboardSnapshot,
+  getSampleShiftSnapshot,
+} from "@/lib/sample-data";
 
 export default async function Home() {
   const session = await auth();
@@ -21,6 +26,7 @@ export default async function Home() {
   }
 
   const snapshot = await getSampleShiftSnapshot();
+  const dashboardSnapshot = await getSampleDashboardSnapshot();
   const bestShift = snapshot.bestShift;
 
   return (
@@ -260,6 +266,25 @@ export default async function Home() {
                 body="Import data from an existing file or download filtered shift history for payroll records."
               />
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-900/10 bg-white/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8">
+          <div className="mb-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              Analytics preview
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+              See your data come to life
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Charts below are driven by sample data — your real analytics
+              update as you log shifts.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <LazyEarningsTrendChart data={dashboardSnapshot.earningsSeries} />
+            <LazyWeekdayPerformanceChart data={dashboardSnapshot.weekdaySeries} />
           </div>
         </section>
       </section>
