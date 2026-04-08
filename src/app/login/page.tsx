@@ -6,7 +6,8 @@ import { LoginForm } from "@/components/login-form";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to your Shiftstats account to view your shifts, earnings, and analytics.",
+  description:
+    "Sign in to your Shiftstats account to view your shifts, earnings, and analytics.",
   alternates: { canonical: "/login" },
   robots: { index: false, follow: false },
 };

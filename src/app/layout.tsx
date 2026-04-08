@@ -35,6 +35,20 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: [
+      { url: "/logos/icon_16.png", sizes: "16x16", type: "image/png" },
+      { url: "/logos/icon_32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logos/icon_64.png", sizes: "64x64", type: "image/png" },
+      { url: "/logos/icon_128.png", sizes: "128x128", type: "image/png" },
+      { url: "/logos/icon_256.png", sizes: "256x256", type: "image/png" },
+      { url: "/logos/icon_512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logos/icon_256.png", sizes: "256x256", type: "image/png" },
+    ],
+    shortcut: "/logos/icon_32.png",
+  },
   openGraph: {
     type: "website",
     url: BASE_URL,
@@ -43,12 +57,21 @@ export const metadata: Metadata = {
     description:
       "Log every shift, track earnings and hourly rates, set goals, and compare pay periods — all in one place.",
     locale: "en_US",
+    images: [
+      {
+        url: "/logos/icon_1024.png",
+        width: 1024,
+        height: 1024,
+        alt: "Shiftstats — Shift Tracking & Earnings Analytics",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Shiftstats — Shift Tracking & Earnings Analytics",
     description:
       "Log every shift, track earnings and hourly rates, set goals, and compare pay periods — all in one place.",
+    images: ["/logos/icon_1024.png"],
   },
   robots: {
     index: true,
