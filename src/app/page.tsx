@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   ArrowRight,
   ChartSpline,
@@ -64,17 +63,8 @@ export default async function Home() {
         <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur">
           <div className="grid gap-10 px-6 py-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:py-10">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white/80 px-3 py-1.5">
-                <Image
-                  src="/logos/icon_32.png"
-                  width={32}
-                  height={32}
-                  alt="Shiftstats logo"
-                  className="h-5 w-5"
-                />
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
-                  Shiftstats
-                </span>
+              <div className="inline-flex items-center rounded-full border border-slate-900/10 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
+                Shiftstats
               </div>
               <div className="space-y-4">
                 <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">

@@ -6,8 +6,7 @@ import { SignupForm } from "@/components/signup-form";
 
 export const metadata: Metadata = {
   title: "Create Account",
-  description:
-    "Create a free Shiftstats account and start tracking your shifts, earnings, and hourly performance today.",
+  description: "Create a free Shiftstats account and start tracking your shifts, earnings, and hourly performance today.",
   alternates: { canonical: "/signup" },
 };
 

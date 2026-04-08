@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -97,14 +96,10 @@ export function AppShell({
         <aside className="hidden border-r border-slate-900/10 bg-white/70 px-6 py-8 backdrop-blur lg:block">
           <Link href="/dashboard" className="block">
             <div className="rounded-[1.5rem] border border-slate-900/10 bg-slate-950 px-5 py-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.24)]">
-              <Image
-                src="/logos/logo_horizontal.png"
-                width={1200}
-                height={320}
-                alt="Shiftstats"
-                className="h-7 w-auto"
-              />
-              <h1 className="mt-3 text-2xl font-semibold">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">
+                Shiftstats
+              </p>
+              <h1 className="mt-2 text-2xl font-semibold">
                 Earnings at a glance
               </h1>
               <p className="mt-3 text-sm leading-6 text-slate-300">
@@ -140,22 +135,13 @@ export function AppShell({
         <div className="flex min-h-screen flex-col">
           <header className="sticky top-0 z-20 border-b border-slate-900/10 bg-white/75 px-5 py-3 backdrop-blur lg:px-8 lg:py-4">
             <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Image
-                  src="/logos/icon_64.png"
-                  width={64}
-                  height={64}
-                  alt="Shiftstats"
-                  className="h-7 w-7"
-                />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    Shiftstats
-                  </p>
-                  <p className="mt-0.5 hidden text-sm text-slate-600 lg:block">
-                    Signed in as {currentUserEmail ?? "unknown user"}.
-                  </p>
-                </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  Shiftstats
+                </p>
+                <p className="mt-1 hidden text-sm text-slate-600 lg:block">
+                  Signed in as {currentUserEmail ?? "unknown user"}.
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Link
